@@ -131,3 +131,4 @@ export default function Footer({ onOpenAdmin }) {
     </footer>
   );
 }
+

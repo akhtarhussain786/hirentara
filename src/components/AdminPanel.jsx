@@ -902,15 +902,15 @@ export default function AdminPanel({ onClose }) {
                 </div>
               </div>
 
-              {/* Uploaded Resume View / Download */}
+              {/* Uploaded Resume View / Download (Secure token protected) */}
               <div>
                 <span className="text-xs font-bold uppercase text-slate-500 mb-1 block">Uploaded Resume</span>
                 {selectedApp.resumeUrl ? (
                   <a
-                    href={selectedApp.resumeUrl}
+                    href={`${selectedApp.resumeUrl}?token=${encodeURIComponent(authToken)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-xs border border-blue-200"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-xs border border-blue-200 shadow-sm"
                   >
                     <FileText className="w-4 h-4" />
                     <span>Download / View Resume ({selectedApp.resumeOriginalName || 'Resume'})</span>
@@ -1136,3 +1136,4 @@ export default function AdminPanel({ onClose }) {
     </div>
   );
 }
+

@@ -153,3 +153,4 @@ export default function Header({ onOpenApply, onOpenAdmin, currentView, setCurre
     </header>
   );
 }
+

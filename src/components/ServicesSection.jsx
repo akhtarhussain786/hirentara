@@ -124,3 +124,4 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
     </section>
   );
 }
+

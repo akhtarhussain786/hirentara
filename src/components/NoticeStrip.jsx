@@ -72,3 +72,4 @@ export default function NoticeStrip({ notices, onSelectOpportunityById }) {
     </div>
   );
 }
+

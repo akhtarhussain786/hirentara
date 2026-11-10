@@ -48,19 +48,26 @@ const upload = multer({
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(UPLOADS_DIR));
-
 // Simple in-memory session token tracker
 const activeSessions = new Set();
 
 // Admin auth middleware
 function requireAdmin(req, res, next) {
-  const token = req.headers['x-admin-token'];
+  const token = req.headers['x-admin-token'] || req.query.token;
   if (token && activeSessions.has(token)) {
     return next();
   }
   return res.status(401).json({ success: false, message: 'Unauthorized. Please login as admin.' });
 }
+
+// Protected uploads endpoint - Applicant details aur uploads sirf authorised admin ko available hon
+app.use('/uploads', (req, res, next) => {
+  const token = req.headers['x-admin-token'] || req.query.token;
+  if (token && activeSessions.has(token)) {
+    return next();
+  }
+  return res.status(403).json({ success: false, message: 'Uploads are restricted to authorized admin only.' });
+}, express.static(UPLOADS_DIR));
 
 // ----------------- PUBLIC ENDPOINTS -----------------
 

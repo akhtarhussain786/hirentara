@@ -158,3 +158,4 @@ export default function OpportunityModal({ opportunity, onClose, onApply }) {
     </div>
   );
 }
+
