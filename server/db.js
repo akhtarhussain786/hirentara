@@ -1,0 +1,234 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const DATA_DIR = path.join(__dirname, 'data');
+const DB_FILE = path.join(DATA_DIR, 'database.json');
+
+// Ensure directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const defaultData = {
+  admin: {
+    username: "admin",
+    password: "admin123" // Default password as per developer brief
+  },
+  notices: [
+    {
+      id: "not-1",
+      text: "Dubai job applications open - Urgent vacancy for Hotel & Facility Staff! Details dekhein.",
+      linkedOpportunityId: "opp-1",
+      active: true,
+      createdAt: "2026-11-10T10:00:00.000Z"
+    },
+    {
+      id: "not-2",
+      text: "Poland Warehouse & Logistics Worker requirements open - Free accommodation provided.",
+      linkedOpportunityId: "opp-2",
+      active: true,
+      createdAt: "2026-11-10T10:05:00.000Z"
+    },
+    {
+      id: "not-3",
+      text: "Gulf & European Country Visa Processing & Document Attestation Express Service.",
+      linkedOpportunityId: "opp-4",
+      active: true,
+      createdAt: "2026-11-10T10:10:00.000Z"
+    }
+  ],
+  opportunities: [
+    {
+      id: "opp-1",
+      title: "Dubai Hotel & Hospitality Staff",
+      serviceType: "Overseas Jobs",
+      country: "UAE (Dubai)",
+      salary: "2,400 - 3,200 AED / Month (~ ₹55,000 - ₹72,000 INR)",
+      facilities: "Free Accommodation, Transport, Food allowance, Medical Insurance & 2 Years Contract with Visa",
+      eligibility: "Age: 21-38 years. Minimum 10th/12th Pass. Basic English ya Hindi communication. Freshers & experienced both eligible.",
+      charges: "Government visa fees + medical & documentation charges. Detailed breakdown given after selection.",
+      documentsRequired: "Passport copy (Minimum 1 year validity), 4 Passport-size photos (white background), Education certificates, Updated Resume (if available)",
+      deadline: "2026-12-15",
+      status: "open",
+      featured: true,
+      createdAt: "2026-11-10T09:00:00.000Z"
+    },
+    {
+      id: "opp-2",
+      title: "Poland Warehouse Packing & Logistics Assistant",
+      serviceType: "Overseas Jobs",
+      country: "Poland (Europe)",
+      salary: "4,200 - 5,200 PLN / Month (~ ₹85,000 - ₹1,05,000 INR) + Overtime",
+      facilities: "Company provided stay/hostel, subsidized food, European Work Permit (TRC support eligible), Overtime bonus",
+      eligibility: "Age: 20-45 years. Physically fit. No prior IELTS required. Hardworking attitude.",
+      charges: "Official Polish Work Permit approval charges, VFS appointment & flight ticket costs. Transparent structure.",
+      documentsRequired: "Valid Passport, PCC (Police Clearance Certificate), Education proofs, Medical fitness certificate",
+      deadline: "2026-12-30",
+      status: "open",
+      featured: true,
+      createdAt: "2026-11-10T09:15:00.000Z"
+    },
+    {
+      id: "opp-3",
+      title: "Saudi Arabia Electrician & AC Technician",
+      serviceType: "Overseas Jobs",
+      country: "Saudi Arabia",
+      salary: "2,600 - 3,400 SAR / Month (~ ₹58,000 - ₹75,000 INR)",
+      facilities: "Sharing accommodation, Iqama provided, Medical insurance, 42 days paid leave after 2 years",
+      eligibility: "Age: 22-42 years. ITI / Diploma / Technical trade certificate or minimum 2 years field experience.",
+      charges: "Visa stamping + Gamca Medical + Emigration charges as per government guidelines.",
+      documentsRequired: "Original Passport, Trade/Skill Certificate, Experience Certificate, White background photos",
+      deadline: "2026-12-20",
+      status: "open",
+      featured: false,
+      createdAt: "2026-11-10T09:30:00.000Z"
+    },
+    {
+      id: "opp-4",
+      title: "Gulf & European Work/Tourist Visa Assistance",
+      serviceType: "Visa Assistance",
+      country: "Multi-Country (Dubai, Qatar, Oman, Poland, Croatia)",
+      salary: "N/A - Visa Consultation & Processing",
+      facilities: "Complete file preparation, Embassy appointment booking, Interview guidance & Visa tracking",
+      eligibility: "Valid passport holders seeking genuine employment or travel visas.",
+      charges: "Consultation & file preparation fee. Embassy visa fees as per country tariffs.",
+      documentsRequired: "Passport, Bank statement/financial proof, Photographs, Purpose statement",
+      deadline: "Open All Year",
+      status: "open",
+      featured: true,
+      createdAt: "2026-11-10T09:45:00.000Z"
+    },
+    {
+      id: "opp-5",
+      title: "MEA Apostille & Embassy Document Attestation",
+      serviceType: "Documents Assistance",
+      country: "All Overseas Destinations",
+      salary: "N/A - Documentation Support",
+      facilities: "Notary, SDM, State HRD, MEA Apostille & Embassy stamping door-to-door delivery assistance",
+      eligibility: "Anyone planning for overseas job, higher studies or immigration.",
+      charges: "Standard government attestation fee per certificate + nominal processing charges.",
+      documentsRequired: "Original Degree / Marksheet / Marriage / Birth Certificate + Passport copy",
+      deadline: "Open All Year",
+      status: "open",
+      featured: false,
+      createdAt: "2026-11-10T09:50:00.000Z"
+    }
+  ],
+  applications: [
+    {
+      id: "OS-2026-1001",
+      opportunityId: "opp-1",
+      opportunityTitle: "Dubai Hotel & Hospitality Staff",
+      serviceType: "Overseas Jobs",
+      country: "UAE (Dubai)",
+      fullName: "Rahul Kumar Verma",
+      mobile: "9876543210",
+      whatsapp: "9876543210",
+      district: "Gorakhpur",
+      state: "Uttar Pradesh",
+      qualification: "12th Pass + Hotel Management Diploma",
+      experience: "2 years experience in local restaurant",
+      passportStatus: "Yes",
+      resumeUrl: "",
+      resumeOriginalName: "",
+      message: "Dubai me waiter ya front desk job ke liye interested hu. Passport ready hai.",
+      status: "Contacted",
+      internalNotes: [
+        {
+          note: "Candidate se call par baat hui. Fluent Hindi aur basic English bol leta hai. Passport valid till 2030.",
+          date: "2026-11-10T11:20:00.000Z",
+          author: "Admin"
+        }
+      ],
+      createdAt: "2026-11-10T10:15:00.000Z",
+      updatedAt: "2026-11-10T11:20:00.000Z"
+    },
+    {
+      id: "OS-2026-1002",
+      opportunityId: "opp-2",
+      opportunityTitle: "Poland Warehouse Packing & Logistics Assistant",
+      serviceType: "Overseas Jobs",
+      country: "Poland (Europe)",
+      fullName: "Amit Singh",
+      mobile: "9812345678",
+      whatsapp: "9812345678",
+      district: "Patna",
+      state: "Bihar",
+      qualification: "Graduate (BA)",
+      experience: "1 year warehouse packaging experience",
+      passportStatus: "Yes",
+      resumeUrl: "",
+      resumeOriginalName: "",
+      message: "Europe warehouse job ke liye apply karna chahta hu. Family support ke liye jaldi jana hai.",
+      status: "New",
+      internalNotes: [],
+      createdAt: "2026-11-10T11:45:00.000Z",
+      updatedAt: "2026-11-10T11:45:00.000Z"
+    },
+    {
+      id: "OS-2026-1003",
+      opportunityId: "opp-5",
+      opportunityTitle: "MEA Apostille & Embassy Document Attestation",
+      serviceType: "Documents Assistance",
+      country: "All Overseas Destinations",
+      fullName: "Mohammad Arif",
+      mobile: "9798765432",
+      whatsapp: "9798765432",
+      district: "Lucknow",
+      state: "Uttar Pradesh",
+      qualification: "B.Tech Mechanical",
+      experience: "Degree attestation required for Kuwait Visa",
+      passportStatus: "Yes",
+      resumeUrl: "",
+      resumeOriginalName: "",
+      message: "Kuwait employment visa ke liye B.Tech degree MEA aur Kuwait Embassy se attest karwani hai.",
+      status: "Documents Pending",
+      internalNotes: [
+        {
+          note: "Candidate ko original degree aur marksheet courier karne ki checklist WhatsApp par bhej di hai.",
+          date: "2026-11-10T12:00:00.000Z",
+          author: "Admin"
+        }
+      ],
+      createdAt: "2026-11-10T11:50:00.000Z",
+      updatedAt: "2026-11-10T12:00:00.000Z"
+    }
+  ]
+};
+
+// Initialize DB if file does not exist
+if (!fs.existsSync(DB_FILE)) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+}
+
+export function readDb() {
+  try {
+    const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error("Error reading database, restoring defaults:", err);
+    return defaultData;
+  }
+}
+
+export function writeDb(data) {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error("Error writing to database:", err);
+    return false;
+  }
+}
+
+export function generateApplicationId() {
+  const db = readDb();
+  const count = (db.applications?.length || 0) + 1;
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  return `OS-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;
+}
+
