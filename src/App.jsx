@@ -5,6 +5,7 @@ import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
 import OpportunitiesSection from './components/OpportunitiesSection';
 import TestimonialsSection from './components/TestimonialsSection';
+import FAQSection from './components/FAQSection';
 import OpportunityModal from './components/OpportunityModal';
 import ApplicationForm from './components/ApplicationForm';
 import Footer from './components/Footer';
@@ -126,6 +127,9 @@ export default function App() {
 
         {/* 6. Success Stories & Real Candidate Testimonials */}
         <TestimonialsSection />
+
+        {/* 7. Frequently Asked Questions */}
+        <FAQSection />
       </main>
 
       {/* 6. Footer with Address, Call, WhatsApp Buttons */}

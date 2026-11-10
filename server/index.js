@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Setup Uploads directory
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
@@ -466,8 +466,41 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
 // Serve frontend in production build if dist directory exists
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(DIST_DIR)) {
-  app.use(express.static(DIST_DIR));
+  // Static assets from dist
+  app.use(express.static(DIST_DIR, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    }
+  }));
+
+  // Handle cached requests for main.tsx / main.jsx by serving the built bundle as JS
+  app.get(['/src/main.tsx', '/src/main.jsx', '/main.tsx', '/main.jsx', '/@fs/*'], (req, res) => {
+    try {
+      const assetsDir = path.join(DIST_DIR, 'assets');
+      if (fs.existsSync(assetsDir)) {
+        const files = fs.readdirSync(assetsDir);
+        const jsFile = files.find(f => f.endsWith('.js'));
+        if (jsFile) {
+          res.setHeader('Content-Type', 'application/javascript');
+          return res.sendFile(path.join(assetsDir, jsFile));
+        }
+      }
+    } catch (e) {}
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send('// bundle alias\nwindow.location.reload();');
+  });
+
+  // SPA fallback for HTML pages
   app.get('*', (req, res) => {
+    // If request has a file extension (e.g. .js, .css, .tsx, .png), do NOT send index.html (prevents MIME type errors)
+    if (path.extname(req.path)) {
+      return res.status(404).send('Asset not found');
+    }
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.sendFile(path.join(DIST_DIR, 'index.html'));
   });
 }
