@@ -40,6 +40,7 @@ export const defaultData = {
       createdAt: "2026-11-10T10:10:00.000Z"
     }
   ],
+
   opportunities: [
     {
       id: "opp-1",

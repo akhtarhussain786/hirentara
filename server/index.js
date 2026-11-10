@@ -505,7 +505,15 @@ if (fs.existsSync(DIST_DIR)) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running smoothly on http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend server running smoothly on http://127.0.0.1:${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.warn(`[WARN] Port ${PORT} already active. Existing server instance is handling requests.`);
+  } else {
+    console.error('[ERROR] Server listen failed:', err);
+  }
 });
 
