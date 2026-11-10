@@ -8,15 +8,14 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'database.json');
 
-// Ensure directory exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const defaultData = {
+export const defaultData = {
   admin: {
     username: "admin",
-    password: "admin123" // Default password as per developer brief
+    password: "admin123"
   },
   notices: [
     {
@@ -47,6 +46,7 @@ const defaultData = {
       title: "Dubai Hotel & Hospitality Staff",
       serviceType: "Overseas Jobs",
       country: "UAE (Dubai)",
+      imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
       salary: "2,400 - 3,200 AED / Month (~ ₹55,000 - ₹72,000 INR)",
       facilities: "Free Accommodation, Transport, Food allowance, Medical Insurance & 2 Years Contract with Visa",
       eligibility: "Age: 21-38 years. Minimum 10th/12th Pass. Basic English ya Hindi communication. Freshers & experienced both eligible.",
@@ -62,6 +62,7 @@ const defaultData = {
       title: "Poland Warehouse Packing & Logistics Assistant",
       serviceType: "Overseas Jobs",
       country: "Poland (Europe)",
+      imageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80",
       salary: "4,200 - 5,200 PLN / Month (~ ₹85,000 - ₹1,05,000 INR) + Overtime",
       facilities: "Company provided stay/hostel, subsidized food, European Work Permit (TRC support eligible), Overtime bonus",
       eligibility: "Age: 20-45 years. Physically fit. No prior IELTS required. Hardworking attitude.",
@@ -77,6 +78,7 @@ const defaultData = {
       title: "Saudi Arabia Electrician & AC Technician",
       serviceType: "Overseas Jobs",
       country: "Saudi Arabia",
+      imageUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
       salary: "2,600 - 3,400 SAR / Month (~ ₹58,000 - ₹75,000 INR)",
       facilities: "Sharing accommodation, Iqama provided, Medical insurance, 42 days paid leave after 2 years",
       eligibility: "Age: 22-42 years. ITI / Diploma / Technical trade certificate or minimum 2 years field experience.",
@@ -91,7 +93,8 @@ const defaultData = {
       id: "opp-4",
       title: "Gulf & European Work/Tourist Visa Assistance",
       serviceType: "Visa Assistance",
-      country: "Multi-Country (Dubai, Qatar, Oman, Poland, Croatia)",
+      country: "Dubai, Qatar, Poland, Croatia",
+      imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
       salary: "N/A - Visa Consultation & Processing",
       facilities: "Complete file preparation, Embassy appointment booking, Interview guidance & Visa tracking",
       eligibility: "Valid passport holders seeking genuine employment or travel visas.",
@@ -107,6 +110,7 @@ const defaultData = {
       title: "MEA Apostille & Embassy Document Attestation",
       serviceType: "Documents Assistance",
       country: "All Overseas Destinations",
+      imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80",
       salary: "N/A - Documentation Support",
       facilities: "Notary, SDM, State HRD, MEA Apostille & Embassy stamping door-to-door delivery assistance",
       eligibility: "Anyone planning for overseas job, higher studies or immigration.",
@@ -200,10 +204,8 @@ const defaultData = {
   ]
 };
 
-// Initialize DB if file does not exist
-if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
-}
+// Write fresh DB with real images
+fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
 
 export function readDb() {
   try {
@@ -231,4 +233,3 @@ export function generateApplicationId() {
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   return `OS-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;
 }
-

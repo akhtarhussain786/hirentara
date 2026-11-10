@@ -4,6 +4,7 @@ import NoticeStrip from './components/NoticeStrip';
 import Hero from './components/Hero';
 import ServicesSection from './components/ServicesSection';
 import OpportunitiesSection from './components/OpportunitiesSection';
+import TestimonialsSection from './components/TestimonialsSection';
 import OpportunityModal from './components/OpportunityModal';
 import ApplicationForm from './components/ApplicationForm';
 import Footer from './components/Footer';
@@ -123,6 +124,8 @@ export default function App() {
           onApply={(opp) => handleOpenApply(opp)}
         />
 
+        {/* 6. Success Stories & Real Candidate Testimonials */}
+        <TestimonialsSection />
       </main>
 
       {/* 6. Footer with Address, Call, WhatsApp Buttons */}
