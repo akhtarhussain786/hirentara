@@ -1,14 +1,15 @@
 import React from 'react';
 import { Briefcase, Compass, FileCheck2, ArrowRight, Check, Sparkles } from 'lucide-react';
 
-export default function ServicesSection({ onSelectCategory, onApplyForService }) {
-  const services = [
+export default function ServicesSection({ services: propServices, onSelectCategory, onApplyForService }) {
+  const defaultServices = [
     {
-      id: 'Overseas Jobs',
+      id: 'srv-1',
+      serviceType: 'Overseas Jobs',
       title: 'Overseas Jobs (Videsh Rozgar)',
       badge: 'Urgent Hiring',
       icon: Briefcase,
-      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80',
       description: 'Dubai, Gulf, Poland aur European countries me verified employers ke saath hotel, warehouse, technician, driver aur logistics jobs.',
       features: [
         'Direct Employer Contracts & Offer Letters',
@@ -18,11 +19,12 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
       ]
     },
     {
-      id: 'Visa Assistance',
+      id: 'srv-2',
+      serviceType: 'Visa Assistance',
       title: 'Visa Assistance Services',
       badge: '98% Approval',
       icon: Compass,
-      image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
       description: 'Employment Visa, Tourist Visa, Business Visa aur Student Visa ke liye complete file preparation, appointment booking aur counseling.',
       features: [
         'VFS & Embassy Appointment Booking',
@@ -32,11 +34,12 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
       ]
     },
     {
-      id: 'Documents Assistance',
+      id: 'srv-3',
+      serviceType: 'Documents Assistance',
       title: 'MEA Apostille & Attestation',
       badge: 'Govt Certified',
       icon: FileCheck2,
-      image: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
       description: 'MEA Apostille, State HRD, Notary, SDM aur foreign embassies (UAE, Saudi, Kuwait, Qatar) se legal degree aur certificate attestation.',
       features: [
         'MEA (Ministry of External Affairs) Apostille',
@@ -46,6 +49,8 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
       ]
     }
   ];
+
+  const services = (propServices && propServices.length > 0) ? propServices : defaultServices;
 
   return (
     <section id="services" className="py-16 sm:py-24 bg-white">
@@ -68,7 +73,9 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
         {/* 3 Main Service Cards with Real Photos */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {services.map((srv) => {
-            const Icon = srv.icon;
+            const Icon = srv.icon || Briefcase;
+            const cardImg = srv.imageUrl || srv.image || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80';
+            const srvType = srv.serviceType || srv.id;
             return (
               <div
                 key={srv.id}
@@ -78,7 +85,7 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
                   {/* Real Image Banner */}
                   <div className="relative h-48 w-full overflow-hidden">
                     <img
-                      src={srv.image}
+                      src={cardImg}
                       alt={srv.title}
                       className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
                     />
@@ -122,13 +129,13 @@ export default function ServicesSection({ onSelectCategory, onApplyForService })
                 {/* Footer Buttons */}
                 <div className="px-6 pb-6 pt-2 flex items-center gap-3 border-t border-slate-100">
                   <button
-                    onClick={() => onSelectCategory(srv.id)}
+                    onClick={() => onSelectCategory(srvType)}
                     className="flex-1 py-3 px-3 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors text-center"
                   >
                     View Vacancies
                   </button>
                   <button
-                    onClick={() => onApplyForService(srv.id)}
+                    onClick={() => onApplyForService(srvType)}
                     className="py-3 px-5 text-xs font-bold text-white bg-slate-900 hover:bg-blue-600 rounded-xl transition-colors text-center shadow-md flex items-center gap-1.5"
                   >
                     <span>Apply</span>

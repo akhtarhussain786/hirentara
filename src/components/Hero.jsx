@@ -1,7 +1,16 @@
 import React from 'react';
 import { ArrowRight, PlaneTakeoff, ShieldCheck, CheckCircle2, Star, Users, Award, MapPin } from 'lucide-react';
 
-export default function Hero({ onExplore, onApply }) {
+export default function Hero({ settings, onExplore, onApply }) {
+  const heroTitle = settings?.heroTitle || "Videsh Jane Ka Sapna,";
+  const heroHighlight = settings?.heroHighlight || "Sahi, Surakshit & Legal";
+  const heroSuffix = settings?.heroSuffix || "Tarike Se.";
+  const heroDescription = settings?.heroDescription || "Dubai, Gulf aur European deshon me verified jobs, fast-track visa processing aur legal MEA document attestation. Hamari team aapke sath shuruat se visa milne tak khadi rehti hai.";
+  const heroImageUrl = settings?.heroImageUrl || "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80";
+  const placedCount = settings?.placedCount || "5,400+";
+  const visaSuccessRate = settings?.visaSuccessRate || "98.4%";
+  const genuineContracts = settings?.genuineContracts || "100%";
+
   const destinationCountries = [
     { name: 'Dubai (UAE)', flag: '🇦🇪', openJobs: '18+ Openings' },
     { name: 'Poland (Europe)', flag: '🇵🇱', openJobs: '12+ Openings' },
@@ -34,15 +43,15 @@ export default function Hero({ onExplore, onApply }) {
 
             {/* Headline */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
-              Videsh Jane Ka Sapna, <br />
+              {heroTitle} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800">
-                Sahi, Surakshit & Legal
-              </span> Tarike Se.
+                {heroHighlight}
+              </span> {heroSuffix}
             </h1>
 
             {/* Sub-text */}
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
-              Dubai, Gulf aur European deshon me verified jobs, fast-track visa processing aur legal MEA document attestation. Hamari team aapke sath shuruat se visa milne tak khadi rehti hai.
+              {heroDescription}
             </p>
 
             {/* CTAs */}
@@ -67,15 +76,15 @@ export default function Hero({ onExplore, onApply }) {
             {/* Micro Trust Stats */}
             <div className="pt-4 grid grid-cols-3 gap-4 border-t border-slate-200/80">
               <div>
-                <div className="text-2xl font-black text-slate-900">5,400+</div>
+                <div className="text-2xl font-black text-slate-900">{placedCount}</div>
                 <div className="text-xs text-slate-500 font-medium">Placed Overseas</div>
               </div>
               <div>
-                <div className="text-2xl font-black text-blue-600">98.4%</div>
+                <div className="text-2xl font-black text-blue-600">{visaSuccessRate}</div>
                 <div className="text-xs text-slate-500 font-medium">Visa Approval Rate</div>
               </div>
               <div>
-                <div className="text-2xl font-black text-emerald-600">100%</div>
+                <div className="text-2xl font-black text-emerald-600">{genuineContracts}</div>
                 <div className="text-xs text-slate-500 font-medium">Genuine Contracts</div>
               </div>
             </div>
@@ -89,8 +98,8 @@ export default function Hero({ onExplore, onApply }) {
               {/* Main Real Image (Dubai & International Career) */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-[4/3] sm:aspect-[4/3] group">
                 <img
-                  src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80"
-                  alt="Dubai Skyline and International Career Opportunities"
+                  src={heroImageUrl}
+                  alt="International Career and Visa Opportunities"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-black/20" />

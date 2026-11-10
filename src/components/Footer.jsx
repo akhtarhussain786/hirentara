@@ -1,11 +1,13 @@
 import React from 'react';
 import { Phone, MessageCircle, MapPin, Clock, Mail, Globe, ShieldCheck } from 'lucide-react';
 
-export default function Footer({ onOpenAdmin }) {
-  const phoneNumber = "+919876543210";
-  const whatsappNumber = "919876543210";
-  const officeAddress = "SCF 24, 2nd Floor, Overseas Hub Commercial Complex, Near Bus Stand, Gorakhpur, UP - 273001";
-  const workingHours = "Monday - Saturday: 9:30 AM to 6:30 PM (Sunday Closed)";
+export default function Footer({ settings, onOpenAdmin }) {
+  const phoneNumber = settings?.phone || "+919876543210";
+  const whatsappNumber = settings?.whatsapp || "919876543210";
+  const officeAddress = settings?.officeAddress || "SCF 24, 2nd Floor, Overseas Hub Commercial Complex, Near Bus Stand, Gorakhpur, UP - 273001";
+  const workingHours = settings?.workingHours || "Monday - Saturday: 9:30 AM to 6:30 PM (Sunday Closed)";
+  const email = settings?.email || "contact@overseas-services.com";
+  const siteName = settings?.siteName || "OverseasServices";
 
   return (
     <footer id="contact" className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">
@@ -21,7 +23,7 @@ export default function Footer({ onOpenAdmin }) {
                 <Globe className="w-6 h-6" />
               </div>
               <span className="font-extrabold text-2xl text-white tracking-tight">
-                Overseas<span className="text-blue-500">Services</span>
+                {siteName}
               </span>
             </div>
 
@@ -84,7 +86,7 @@ export default function Footer({ onOpenAdmin }) {
               </div>
               <div className="flex items-center gap-2 pt-2">
                 <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span>contact@overseas-services.com</span>
+                <span>{email}</span>
               </div>
             </div>
           </div>

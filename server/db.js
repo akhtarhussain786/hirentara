@@ -17,6 +17,67 @@ export const defaultData = {
     username: "admin",
     password: "admin123"
   },
+  settings: {
+    siteName: "OverseasServices",
+    siteSubtitle: "Videsh Jobs, Visa & Attestation Portal",
+    heroTitle: "Videsh Jane Ka Sapna,",
+    heroHighlight: "Sahi, Surakshit & Legal",
+    heroSuffix: "Tarike Se.",
+    heroDescription: "Dubai, Gulf aur European deshon me verified jobs, fast-track visa processing aur legal MEA document attestation. Hamari team aapke sath shuruat se visa milne tak khadi rehti hai.",
+    heroImageUrl: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80",
+    placedCount: "5,400+",
+    visaSuccessRate: "98.4%",
+    genuineContracts: "100%",
+    phone: "+919876543210",
+    whatsapp: "919876543210",
+    email: "contact@overseas-services.com",
+    officeAddress: "SCF 24, 2nd Floor, Overseas Hub Commercial Complex, Near Bus Stand, Gorakhpur, UP - 273001",
+    workingHours: "Monday - Saturday: 9:30 AM to 6:30 PM (Sunday Closed)"
+  },
+  services: [
+    {
+      id: "srv-1",
+      serviceType: "Overseas Jobs",
+      title: "Overseas Jobs (Videsh Rozgar)",
+      badge: "Urgent Hiring",
+      imageUrl: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80",
+      description: "Dubai, Gulf, Poland aur European countries me verified employers ke saath hotel, warehouse, technician, driver aur logistics jobs.",
+      features: [
+        "Direct Employer Contracts & Offer Letters",
+        "Company Stay, Food & Health Insurance",
+        "Transparent Process & Fair Salary",
+        "Pre-departure orientation & airport pickup"
+      ]
+    },
+    {
+      id: "srv-2",
+      serviceType: "Visa Assistance",
+      title: "Visa Assistance Services",
+      badge: "98% Approval",
+      imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      description: "Employment Visa, Tourist Visa, Business Visa aur Student Visa ke liye complete file preparation, appointment booking aur counseling.",
+      features: [
+        "VFS & Embassy Appointment Booking",
+        "Cover Letter, SOP & Financial Checklist",
+        "Embassy Mock Interview Guidance",
+        "Fast-track Visa filing & live status track"
+      ]
+    },
+    {
+      id: "srv-3",
+      serviceType: "Documents Assistance",
+      title: "MEA Apostille & Attestation",
+      badge: "Govt Certified",
+      imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80",
+      description: "MEA Apostille, State HRD, Notary, SDM aur foreign embassies (UAE, Saudi, Kuwait, Qatar) se legal degree aur certificate attestation.",
+      features: [
+        "MEA (Ministry of External Affairs) Apostille",
+        "Degree, Marksheet & Diploma Stamping",
+        "Birth, Marriage & Commercial Certificate",
+        "Safe doorstep pickup & speed courier service"
+      ]
+    }
+  ],
   notices: [
     {
       id: "not-1",
@@ -40,7 +101,6 @@ export const defaultData = {
       createdAt: "2026-11-10T10:10:00.000Z"
     }
   ],
-
   opportunities: [
     {
       id: "opp-1",
@@ -121,6 +181,65 @@ export const defaultData = {
       status: "open",
       featured: false,
       createdAt: "2026-11-10T09:50:00.000Z"
+    }
+  ],
+  testimonials: [
+    {
+      id: "test-1",
+      name: "Rameshwar Yadav",
+      role: "Hotel Facilities & Steward",
+      country: "Dubai, UAE",
+      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      quote: "Overseas Services ke through mera Dubai hotel me selection hua. Visa 25 din me aa gaya aur company ne free room aur khana diya hai. Bahut honest team hai.",
+      placedDate: "Placed Oct 2026",
+      salary: "2,600 AED / Month"
+    },
+    {
+      id: "test-2",
+      name: "Praveen Sharma",
+      role: "Logistics Warehouse Assistant",
+      country: "Warsaw, Poland (Europe)",
+      photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+      quote: "Europe jane ka sapna tha. Sirf basic 12th thi, lekin inhone work permit aur VFS appointment me poora guide kiya. Aaj Poland me achhi earning kar raha hu.",
+      placedDate: "Placed Sep 2026",
+      salary: "4,600 PLN / Month"
+    },
+    {
+      id: "test-3",
+      name: "Mohammad Irfan",
+      role: "Certified Industrial Electrician",
+      country: "Riyadh, Saudi Arabia",
+      photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80",
+      quote: "ITI ke baad job dhoondh raha tha. Inke pass aane ke baad trade test hua aur direct company ka offer letter mila. Iqama aur medical sab smoothly ho gaya.",
+      placedDate: "Placed Aug 2026",
+      salary: "3,000 SAR / Month"
+    }
+  ],
+  faqs: [
+    {
+      id: "faq-1",
+      q: "Videsh jane ke liye kya passport pehle se hona zaroori hai?",
+      a: "Nahi, shuruat me agar aapke paas passport nahi bhi hai, tab bhi aap enquiry form bhar sakte hain. Hamari team aapko Tatkal ya Normal passport banwane ka poora process samjha degi. Lekin visa stamping ke samay valid passport zaroori hota hai."
+    },
+    {
+      id: "faq-2",
+      q: "Visa aur processing me lagbhag kitna samay lagta hai?",
+      a: "Gulf deshon (Dubai, Saudi Arabia, Qatar) ke liye employment visa aamtaur par 20 se 35 din me process ho jata hai. European deshon (Poland, Croatia) ke liye official Work Permit aane me 60 se 90 din ka samay lagta hai."
+    },
+    {
+      id: "faq-3",
+      q: "Kya rehna (Accommodation) aur khana company ki taraf se milta hai?",
+      a: "Haan, hamari zyadatar overseas job vacancies me company sharing accommodation, transportation aur food allowance ya subsidized mess provide karti hai. Har vacancy ke Details page par iski poori jankari di gayi hai."
+    },
+    {
+      id: "faq-4",
+      q: "Kya koi hidden charges ya fraud ka risk hai?",
+      a: "Bilkul nahi. Hamari consultancy 100% genuine aur government registered standards follow karti hai. Document verification aur selection ke baad transparent fee breakdown diya jata hai aur proper receipt di jati hai."
+    },
+    {
+      id: "faq-5",
+      q: "Medical fitness test (GAMCA) kaise aur kahan hota hai?",
+      a: "Gulf deshon ke liye GAMCA approved centers par medical test hota hai. Hamari team aapke shahar ke sabse kareebi approved medical center ka appointment book karwane me madad karti hai."
     }
   ],
   applications: [
@@ -205,13 +324,24 @@ export const defaultData = {
   ]
 };
 
-// Write fresh DB with real images
+// Initialize DB file
 fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
 
 export function readDb() {
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Ensure all keys exist
+    return {
+      admin: parsed.admin || defaultData.admin,
+      settings: parsed.settings || defaultData.settings,
+      services: parsed.services || defaultData.services,
+      notices: parsed.notices || defaultData.notices,
+      opportunities: parsed.opportunities || defaultData.opportunities,
+      testimonials: parsed.testimonials || defaultData.testimonials,
+      faqs: parsed.faqs || defaultData.faqs,
+      applications: parsed.applications || defaultData.applications
+    };
   } catch (err) {
     console.error("Error reading database, restoring defaults:", err);
     return defaultData;

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { ChevronDown, HelpCircle, PhoneCall, MessageCircle } from 'lucide-react';
 
-export default function FAQSection() {
+export default function FAQSection({ faqs: propFaqs, settings }) {
   const [openIndex, setOpenIndex] = useState(0);
 
-  const faqs = [
+  const phone = settings?.phone || "+919876543210";
+  const whatsapp = settings?.whatsapp || "919876543210";
+
+  const defaultFaqs = [
     {
       q: "Videsh jane ke liye kya passport pehle se hona zaroori hai?",
       a: "Nahi, shuruat me agar aapke paas passport nahi bhi hai, tab bhi aap enquiry form bhar sakte hain. Hamari team aapko Tatkal ya Normal passport banwane ka poora process samjha degi. Lekin visa stamping ke samay valid passport zaroori hota hai."
@@ -26,6 +29,8 @@ export default function FAQSection() {
       a: "Gulf deshon ke liye GAMCA approved centers par medical test hota hai. Hamari team aapke shahar ke sabse kareebi approved medical center ka appointment book karwane me madad karti hai."
     }
   ];
+
+  const faqs = (propFaqs && propFaqs.length > 0) ? propFaqs : defaultFaqs;
 
   return (
     <section className="py-16 sm:py-24 bg-slate-50 border-t border-slate-200">

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Shield, LogOut, Search, Filter, Download, Plus, Edit2, Trash2, CheckCircle2,
   Phone, MessageSquare, FileText, ChevronRight, AlertCircle, Clock, Check, X,
-  ExternalLink, User, RefreshCw, Eye
+  ExternalLink, User, RefreshCw, Eye, Settings, Briefcase, Bell, MessageCircle,
+  HelpCircle, Key, Save, Image, Globe, MapPin, Building
 } from 'lucide-react';
 
 export default function AdminPanel({ onClose }) {
@@ -11,8 +12,22 @@ export default function AdminPanel({ onClose }) {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Active sub-tab: 'applications' | 'opportunities' | 'notices'
+  // Active sub-tab: 'applications' | 'settings' | 'opportunities' | 'notices' | 'services' | 'testimonials' | 'faqs' | 'security'
   const [currentTab, setCurrentTab] = useState('applications');
+
+  // Complete Site Data State
+  const [siteData, setSiteData] = useState({
+    settings: {},
+    services: [],
+    notices: [],
+    opportunities: [],
+    testimonials: [],
+    faqs: []
+  });
+
+  // Settings form state
+  const [settingsForm, setSettingsForm] = useState({});
+  const [settingsSavedMessage, setSettingsSavedMessage] = useState('');
 
   // Applications state
   const [applications, setApplications] = useState([]);
@@ -25,14 +40,29 @@ export default function AdminPanel({ onClose }) {
   const [statusUpdating, setStatusUpdating] = useState(false);
 
   // Opportunities state
-  const [opportunities, setOpportunities] = useState([]);
   const [editingOpp, setEditingOpp] = useState(null);
   const [isOppModalOpen, setIsOppModalOpen] = useState(false);
 
   // Notices state
-  const [notices, setNotices] = useState([]);
   const [newNoticeText, setNewNoticeText] = useState('');
   const [newNoticeLinkedOpp, setNewNoticeLinkedOpp] = useState('');
+
+  // Services modal state
+  const [editingService, setEditingService] = useState(null);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+
+  // Testimonials modal state
+  const [editingTestimonial, setEditingTestimonial] = useState(null);
+  const [isTestimonialModalOpen, setIsTestimonialModalOpen] = useState(false);
+
+  // FAQ modal state
+  const [editingFaq, setEditingFaq] = useState(null);
+  const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
+
+  // Security state
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [securityMessage, setSecurityMessage] = useState('');
 
   // Stats
   const [stats, setStats] = useState(null);
@@ -72,6 +102,25 @@ export default function AdminPanel({ onClose }) {
     setAuthToken('');
   };
 
+  // Fetch complete site data
+  const fetchCompleteSiteData = async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch('/api/admin/site-data', {
+        headers: { 'x-admin-token': authToken }
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSiteData(data.data);
+        setSettingsForm(data.data.settings || {});
+      } else if (res.status === 401) {
+        handleLogout();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Fetch applications
   const fetchApplications = async () => {
     if (!authToken) return;
@@ -88,39 +137,11 @@ export default function AdminPanel({ onClose }) {
       const data = await res.json();
       if (data.success) {
         setApplications(data.data);
-      } else if (res.status === 401) {
-        handleLogout();
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingApps(false);
-    }
-  };
-
-  // Fetch opportunities
-  const fetchOpportunities = async () => {
-    if (!authToken) return;
-    try {
-      const res = await fetch('/api/opportunities');
-      const data = await res.json();
-      if (data.success) setOpportunities(data.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Fetch notices
-  const fetchNotices = async () => {
-    if (!authToken) return;
-    try {
-      const res = await fetch('/api/admin/notices', {
-        headers: { 'x-admin-token': authToken }
-      });
-      const data = await res.json();
-      if (data.success) setNotices(data.data);
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -140,9 +161,8 @@ export default function AdminPanel({ onClose }) {
 
   useEffect(() => {
     if (authToken) {
+      fetchCompleteSiteData();
       fetchApplications();
-      fetchOpportunities();
-      fetchNotices();
       fetchStats();
     }
   }, [authToken, filterStatus, filterService]);
@@ -154,7 +174,6 @@ export default function AdminPanel({ onClose }) {
     if (filterStatus !== 'All') params.append('status', filterStatus);
     if (filterService !== 'All') params.append('service', filterService);
 
-    // Trigger download with auth token header via direct fetch or window
     fetch(`/api/admin/export?${params.toString()}`, {
       headers: { 'x-admin-token': authToken }
     })
@@ -171,7 +190,31 @@ export default function AdminPanel({ onClose }) {
       .catch(err => alert('Excel export failed.'));
   };
 
-  // Update Status
+  // Save General Website Settings
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    setSettingsSavedMessage('');
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': authToken
+        },
+        body: JSON.stringify(settingsForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettingsSavedMessage('Website Settings & Branding updated successfully!');
+        fetchCompleteSiteData();
+        setTimeout(() => setSettingsSavedMessage(''), 4000);
+      }
+    } catch (err) {
+      alert('Settings save failed');
+    }
+  };
+
+  // Update Application Status
   const handleStatusChange = async (appId, newStatus) => {
     setStatusUpdating(true);
     try {
@@ -198,7 +241,7 @@ export default function AdminPanel({ onClose }) {
     }
   };
 
-  // Add Internal Note
+  // Add Internal Note to Application
   const handleAddNote = async (e) => {
     e.preventDefault();
     if (!newNote.trim() || !selectedApp) return;
@@ -241,7 +284,7 @@ export default function AdminPanel({ onClose }) {
       });
       const data = await res.json();
       if (data.success) {
-        fetchOpportunities();
+        fetchCompleteSiteData();
         setIsOppModalOpen(false);
         setEditingOpp(null);
       }
@@ -250,19 +293,18 @@ export default function AdminPanel({ onClose }) {
     }
   };
 
-  // Delete Opportunity
   const handleDeleteOpp = async (id) => {
-    if (!window.confirm('Kya aap is opportunity ko delete karna chahte hain?')) return;
+    if (!window.confirm('Delete this opportunity?')) return;
     try {
-      const res = await fetch(`/api/admin/opportunities/${id}`, {
+      await fetch(`/api/admin/opportunities/${id}`, {
         method: 'DELETE',
         headers: { 'x-admin-token': authToken }
       });
-      if (res.ok) fetchOpportunities();
+      fetchCompleteSiteData();
     } catch (e) {}
   };
 
-  // Notice Add
+  // Notice Add/Toggle/Delete
   const handleAddNotice = async (e) => {
     e.preventDefault();
     if (!newNoticeText.trim()) return;
@@ -283,12 +325,11 @@ export default function AdminPanel({ onClose }) {
       if (data.success) {
         setNewNoticeText('');
         setNewNoticeLinkedOpp('');
-        fetchNotices();
+        fetchCompleteSiteData();
       }
     } catch (e) {}
   };
 
-  // Toggle Notice Active
   const handleToggleNotice = async (notice) => {
     try {
       await fetch(`/api/admin/notices/${notice.id}`, {
@@ -299,11 +340,10 @@ export default function AdminPanel({ onClose }) {
         },
         body: JSON.stringify({ active: !notice.active })
       });
-      fetchNotices();
+      fetchCompleteSiteData();
     } catch (e) {}
   };
 
-  // Delete Notice
   const handleDeleteNotice = async (id) => {
     if (!window.confirm('Delete notice?')) return;
     try {
@@ -311,34 +351,173 @@ export default function AdminPanel({ onClose }) {
         method: 'DELETE',
         headers: { 'x-admin-token': authToken }
       });
-      fetchNotices();
+      fetchCompleteSiteData();
     } catch (e) {}
   };
 
-  // Color badges for status
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'New':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Contacted':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Documents Pending':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'Processing':
-        return 'bg-cyan-100 text-cyan-800 border-cyan-200';
-      case 'Completed':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'Closed':
-        return 'bg-slate-200 text-slate-700 border-slate-300';
-      default:
-        return 'bg-slate-100 text-slate-800 border-slate-200';
+  // Service Save / Delete
+  const handleSaveService = async (e) => {
+    e.preventDefault();
+    const isEdit = !!editingService.id;
+    const url = isEdit ? `/api/admin/services/${editingService.id}` : '/api/admin/services';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const featuresArray = Array.isArray(editingService.features) 
+      ? editingService.features 
+      : (editingService.features || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': authToken
+        },
+        body: JSON.stringify({ ...editingService, features: featuresArray })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchCompleteSiteData();
+        setIsServiceModalOpen(false);
+        setEditingService(null);
+      }
+    } catch (e) {}
+  };
+
+  const handleDeleteService = async (id) => {
+    if (!window.confirm('Delete this service card?')) return;
+    try {
+      await fetch(`/api/admin/services/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': authToken }
+      });
+      fetchCompleteSiteData();
+    } catch (e) {}
+  };
+
+  // Testimonial Save / Delete
+  const handleSaveTestimonial = async (e) => {
+    e.preventDefault();
+    const isEdit = !!editingTestimonial.id;
+    const url = isEdit ? `/api/admin/testimonials/${editingTestimonial.id}` : '/api/admin/testimonials';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': authToken
+        },
+        body: JSON.stringify(editingTestimonial)
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchCompleteSiteData();
+        setIsTestimonialModalOpen(false);
+        setEditingTestimonial(null);
+      }
+    } catch (e) {}
+  };
+
+  const handleDeleteTestimonial = async (id) => {
+    if (!window.confirm('Delete testimonial?')) return;
+    try {
+      await fetch(`/api/admin/testimonials/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': authToken }
+      });
+      fetchCompleteSiteData();
+    } catch (e) {}
+  };
+
+  // FAQ Save / Delete
+  const handleSaveFaq = async (e) => {
+    e.preventDefault();
+    const isEdit = !!editingFaq.id;
+    const url = isEdit ? `/api/admin/faqs/${editingFaq.id}` : '/api/admin/faqs';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': authToken
+        },
+        body: JSON.stringify(editingFaq)
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchCompleteSiteData();
+        setIsFaqModalOpen(false);
+        setEditingFaq(null);
+      }
+    } catch (e) {}
+  };
+
+  const handleDeleteFaq = async (id) => {
+    if (!window.confirm('Delete FAQ?')) return;
+    try {
+      await fetch(`/api/admin/faqs/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': authToken }
+      });
+      fetchCompleteSiteData();
+    } catch (e) {}
+  };
+
+  // Update Security
+  const handleUpdateSecurity = async (e) => {
+    e.preventDefault();
+    setSecurityMessage('');
+    try {
+      const res = await fetch('/api/admin/security', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': authToken
+        },
+        body: JSON.stringify({ newUsername, newPassword })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSecurityMessage(data.message);
+        setNewPassword('');
+      } else {
+        setSecurityMessage(data.message || 'Update failed');
+      }
+    } catch (e) {
+      setSecurityMessage('Connection error');
     }
   };
 
-  // IF NOT LOGGED IN -> SHOW LOGIN SCREEN
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'New': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Contacted': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Documents Pending': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'Processing': return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+      case 'Completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'Closed': return 'bg-slate-200 text-slate-700 border-slate-300';
+      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+    }
+  };
+
+  // Preset image picker helper
+  const imagePresets = [
+    { label: 'Dubai Hotel', url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80' },
+    { label: 'Europe Warehouse', url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80' },
+    { label: 'Skilled Technician', url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80' },
+    { label: 'Passport & Visa', url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80' },
+    { label: 'MEA Apostille Stamp', url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80' },
+    { label: 'Dubai Burj Khalifa', url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80' }
+  ];
+
+  // LOGIN SCREEN
   if (!authToken) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fadeIn">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-sm animate-fadeIn">
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden p-8 border border-slate-100">
           <div className="text-center mb-6">
             <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-blue-500/30">
@@ -346,7 +525,7 @@ export default function AdminPanel({ onClose }) {
             </div>
             <h3 className="text-2xl font-black text-slate-900">Admin Control Panel</h3>
             <p className="text-xs text-slate-500 mt-1">
-              Authorized team login for managing notices & overseas leads
+              Authorized team login for managing leads, content & website settings
             </p>
           </div>
 
@@ -375,7 +554,7 @@ export default function AdminPanel({ onClose }) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password (default: admin123)"
+                placeholder="Enter password (default: admin123)"
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
@@ -403,57 +582,106 @@ export default function AdminPanel({ onClose }) {
     );
   }
 
-  // LOGGED IN ADMIN DASHBOARD
+  // LOGGED IN DASHBOARD
   return (
     <div className="fixed inset-0 z-50 bg-slate-100 flex flex-col overflow-hidden">
       
       {/* Top Navbar */}
-      <header className="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 flex items-center justify-between flex-shrink-0">
+      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between flex-shrink-0 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md">
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-extrabold text-lg text-slate-900 leading-tight">Overseas Admin Suite</h2>
-            <p className="text-[11px] text-slate-500 font-medium">Logged in as Administrator</p>
+            <h2 className="font-extrabold text-base sm:text-lg text-slate-900 leading-tight">
+              Overseas Master Control
+            </h2>
+            <p className="text-[11px] text-slate-500 font-medium">Poori Website & Lead Management</p>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="hidden md:flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+        {/* Tab Navigation Menu */}
+        <div className="hidden lg:flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl overflow-x-auto text-xs font-bold">
           <button
             onClick={() => setCurrentTab('applications')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              currentTab === 'applications' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'applications' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Applications ({stats?.totalApplications || applications.length})
+            📋 Applications ({stats?.totalApplications || applications.length})
           </button>
+
+          <button
+            onClick={() => setCurrentTab('settings')}
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'settings' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            ⚙️ Site & Branding
+          </button>
+
           <button
             onClick={() => setCurrentTab('opportunities')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              currentTab === 'opportunities' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'opportunities' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Opportunities ({opportunities.length})
+            💼 Opportunities ({siteData.opportunities?.length || 0})
           </button>
+
           <button
             onClick={() => setCurrentTab('notices')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              currentTab === 'notices' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'notices' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Notices ({notices.length})
+            📢 Notices ({siteData.notices?.length || 0})
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('services')}
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'services' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            🛠️ 3 Services
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('testimonials')}
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'testimonials' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            🌟 Reviews
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('faqs')}
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'faqs' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            ❓ FAQs
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('security')}
+            className={`px-3.5 py-2 rounded-xl transition-all ${
+              currentTab === 'security' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            🔐 Password
           </button>
         </div>
 
-        {/* Actions */}
+        {/* Live Site & Logout */}
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
             className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-lg"
           >
-            View Live Site
+            Live Site
           </button>
           <button
             onClick={handleLogout}
@@ -465,36 +693,36 @@ export default function AdminPanel({ onClose }) {
         </div>
       </header>
 
-      {/* Mobile Tab switcher */}
-      <div className="md:hidden flex items-center justify-around bg-white border-b border-slate-200 py-2 px-3 text-xs font-bold">
-        <button
-          onClick={() => setCurrentTab('applications')}
-          className={`py-1 px-2 rounded ${currentTab === 'applications' ? 'text-blue-600 bg-blue-50' : 'text-slate-600'}`}
-        >
-          Applications
-        </button>
-        <button
-          onClick={() => setCurrentTab('opportunities')}
-          className={`py-1 px-2 rounded ${currentTab === 'opportunities' ? 'text-blue-600 bg-blue-50' : 'text-slate-600'}`}
-        >
-          Opportunities
-        </button>
-        <button
-          onClick={() => setCurrentTab('notices')}
-          className={`py-1 px-2 rounded ${currentTab === 'notices' ? 'text-blue-600 bg-blue-50' : 'text-slate-600'}`}
-        >
-          Notices
-        </button>
+      {/* Mobile Tab Scroll Menu */}
+      <div className="lg:hidden flex items-center gap-1 overflow-x-auto bg-white border-b border-slate-200 p-2 text-xs font-bold scrollbar-none">
+        {[
+          { id: 'applications', label: 'Applications' },
+          { id: 'settings', label: 'Settings' },
+          { id: 'opportunities', label: 'Opportunities' },
+          { id: 'notices', label: 'Notices' },
+          { id: 'services', label: 'Services' },
+          { id: 'testimonials', label: 'Reviews' },
+          { id: 'faqs', label: 'FAQs' },
+          { id: 'security', label: 'Security' }
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setCurrentTab(t.id)}
+            className={`px-3 py-1.5 rounded-lg whitespace-nowrap ${
+              currentTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 bg-slate-50'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* Main Content Body */}
+      {/* Main Container */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         
-        {/* TAB 1: APPLICATIONS & WORKFLOW */}
+        {/* MODULE 1: APPLICATIONS & WORKFLOW */}
         {currentTab === 'applications' && (
           <div className="max-w-7xl mx-auto space-y-6">
-            
-            {/* KPI Status Summary Cards */}
             {stats && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {Object.keys(stats.statusCounts).map((key) => (
@@ -541,7 +769,6 @@ export default function AdminPanel({ onClose }) {
               </div>
 
               <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-                {/* Filter dropdowns */}
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
@@ -562,7 +789,6 @@ export default function AdminPanel({ onClose }) {
                   <option value="Documents Assistance">Documents Assistance</option>
                 </select>
 
-                {/* Export Excel Button */}
                 <button
                   onClick={handleExportExcel}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
@@ -574,7 +800,7 @@ export default function AdminPanel({ onClose }) {
               </div>
             </div>
 
-            {/* Applications Table / Cards */}
+            {/* Applications Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-600">
@@ -611,9 +837,7 @@ export default function AdminPanel({ onClose }) {
                             <div className="font-semibold text-slate-800 line-clamp-1">{app.opportunityTitle}</div>
                             <div className="text-[11px] text-slate-500">{app.country} • {app.serviceType}</div>
                           </td>
-                          <td className="py-3 px-4">
-                            {app.district}, {app.state}
-                          </td>
+                          <td className="py-3 px-4">{app.district}, {app.state}</td>
                           <td className="py-3 px-4">
                             {app.passportStatus === 'Yes' ? (
                               <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -646,17 +870,222 @@ export default function AdminPanel({ onClose }) {
                 </table>
               </div>
             </div>
-
           </div>
         )}
 
-        {/* TAB 2: OPPORTUNITIES MANAGEMENT */}
+        {/* MODULE 2: WEBSITE BRANDING & CONTACT SETTINGS */}
+        {currentTab === 'settings' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">Website Branding, Contact & Hero Settings</h3>
+              <p className="text-xs text-slate-500">Yahan badla gaya koi bhi data seedhe live website par turant dikhega</p>
+            </div>
+
+            {settingsSavedMessage && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <span>{settingsSavedMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              {/* Branding */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-1.5 border-b pb-2">
+                  <Globe className="w-4 h-4" /> 1. Brand Identity
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Brand Name</label>
+                    <input
+                      type="text"
+                      value={settingsForm.siteName || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, siteName: e.target.value })}
+                      placeholder="e.g. Overseas Services"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Tagline / Subtitle</label>
+                    <input
+                      type="text"
+                      value={settingsForm.siteSubtitle || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, siteSubtitle: e.target.value })}
+                      placeholder="e.g. Videsh Jobs, Visa & Attestation Portal"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-1.5 border-b pb-2">
+                  <Phone className="w-4 h-4" /> 2. Contact & Office Address
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Helpline Phone Number</label>
+                    <input
+                      type="text"
+                      value={settingsForm.phone || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                      placeholder="+919876543210"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp Number (e.g. 919876543210)</label>
+                    <input
+                      type="text"
+                      value={settingsForm.whatsapp || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, whatsapp: e.target.value })}
+                      placeholder="919876543210"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Official Email</label>
+                    <input
+                      type="email"
+                      value={settingsForm.email || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                      placeholder="contact@overseas-services.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Office Full Address</label>
+                    <textarea
+                      rows="2"
+                      value={settingsForm.officeAddress || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, officeAddress: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Office Timings / Working Hours</label>
+                    <textarea
+                      rows="2"
+                      value={settingsForm.workingHours || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, workingHours: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Hero Banner Controls */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-blue-700 flex items-center gap-1.5 border-b pb-2">
+                  <Image className="w-4 h-4" /> 3. Hero Banner & Trust Metrics
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Hero Title</label>
+                    <input
+                      type="text"
+                      value={settingsForm.heroTitle || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, heroTitle: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Hero Highlight (Blue Text)</label>
+                    <input
+                      type="text"
+                      value={settingsForm.heroHighlight || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, heroHighlight: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Hero Suffix Text</label>
+                    <input
+                      type="text"
+                      value={settingsForm.heroSuffix || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, heroSuffix: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Hero Description Paragraph</label>
+                  <textarea
+                    rows="2"
+                    value={settingsForm.heroDescription || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, heroDescription: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Hero Main Skyline Image URL</label>
+                  <input
+                    type="url"
+                    value={settingsForm.heroImageUrl || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, heroImageUrl: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Placed Count</label>
+                    <input
+                      type="text"
+                      value={settingsForm.placedCount || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, placedCount: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Visa Success %</label>
+                    <input
+                      type="text"
+                      value={settingsForm.visaSuccessRate || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, visaSuccessRate: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Genuine Contracts %</label>
+                    <input
+                      type="text"
+                      value={settingsForm.genuineContracts || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, genuineContracts: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-emerald-600"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <div className="pt-4 border-t flex justify-end">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl shadow-md transition-all active:scale-98"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Website Settings Save Karein</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* MODULE 3: OPPORTUNITIES & VACANCIES */}
         {currentTab === 'opportunities' && (
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">Opportunities & Services</h3>
-                <p className="text-xs text-slate-500">Manage vacancies, salaries, countries, eligibility and open/close status</p>
+                <h3 className="text-xl font-bold text-slate-900">Opportunities & Vacancies</h3>
+                <p className="text-xs text-slate-500">Add or edit jobs, European work permits, and service packages</p>
               </div>
 
               <button
@@ -665,6 +1094,7 @@ export default function AdminPanel({ onClose }) {
                     title: '',
                     serviceType: 'Overseas Jobs',
                     country: '',
+                    imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
                     salary: '',
                     facilities: '',
                     eligibility: '',
@@ -683,41 +1113,58 @@ export default function AdminPanel({ onClose }) {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {opportunities.map((opp) => (
-                <div key={opp.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                      {opp.country}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      opp.status === 'open' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {opp.status.toUpperCase()}
-                    </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {siteData.opportunities?.map((opp) => (
+                <div key={opp.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+                  <div>
+                    <div className="relative h-36 w-full bg-slate-100">
+                      {opp.imageUrl && (
+                        <img src={opp.imageUrl} alt={opp.title} className="w-full h-full object-cover" />
+                      )}
+                      <div className="absolute top-2 left-2">
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white/95 text-blue-700 shadow-sm">
+                          {opp.country}
+                        </span>
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          opp.status === 'open' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+                        }`}>
+                          {opp.status.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-4">
+                      <h4 className="font-bold text-slate-900 text-base leading-snug mb-1">{opp.title}</h4>
+                      <p className="text-xs text-slate-500 font-medium mb-2">{opp.serviceType}</p>
+                      <p className="text-xs font-bold text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 mb-2">
+                        {opp.salary || 'Salary as per work'}
+                      </p>
+                    </div>
                   </div>
 
-                  <h4 className="font-bold text-slate-900 text-base">{opp.title}</h4>
-                  <p className="text-xs text-slate-500">{opp.serviceType} • {opp.salary || 'Salary as per work'}</p>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingOpp(opp);
-                        setIsOppModalOpen(true);
-                      }}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="Edit"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteOpp(opp.id)}
-                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div className="p-4 pt-0 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">Deadline: {opp.deadline}</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setEditingOpp(opp);
+                          setIsOppModalOpen(true);
+                        }}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteOpp(opp.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -725,25 +1172,23 @@ export default function AdminPanel({ onClose }) {
           </div>
         )}
 
-        {/* TAB 3: NOTICES MANAGEMENT */}
+        {/* MODULE 4: NOTICES */}
         {currentTab === 'notices' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div>
               <h3 className="text-xl font-bold text-slate-900">Notice Strip Management</h3>
-              <p className="text-xs text-slate-500">Website ke top strip par ghumne wale notices add aur control karein</p>
+              <p className="text-xs text-slate-500">Website ke top rotating strip par notices add aur manage karein</p>
             </div>
 
-            {/* Add Notice Form */}
             <form onSubmit={handleAddNotice} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <h4 className="text-xs font-bold text-slate-700 uppercase">Naya Notice Add Karein</h4>
-              
               <div>
                 <input
                   type="text"
                   value={newNoticeText}
                   onChange={(e) => setNewNoticeText(e.target.value)}
-                  placeholder="Notice text: e.g. Dubai job applications open - Urgent vacancy hotel staff"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. Dubai job applications open - Urgent vacancy hotel staff"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm"
                   required
                 />
               </div>
@@ -755,7 +1200,7 @@ export default function AdminPanel({ onClose }) {
                   className="w-full sm:flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs"
                 >
                   <option value="">-- Kisi specific opportunity se link karein (Optional) --</option>
-                  {opportunities.map(o => (
+                  {siteData.opportunities?.map(o => (
                     <option key={o.id} value={o.id}>{o.title} ({o.country})</option>
                   ))}
                 </select>
@@ -769,17 +1214,14 @@ export default function AdminPanel({ onClose }) {
               </div>
             </form>
 
-            {/* Existing Notices List */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
-              {notices.map(notice => (
+              {siteData.notices?.map(notice => (
                 <div key={notice.id} className="p-4 flex items-center justify-between gap-4">
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-slate-800">{notice.text}</p>
                     <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
                       <span>Status: <strong className={notice.active ? 'text-emerald-600' : 'text-slate-400'}>{notice.active ? 'Active' : 'Inactive'}</strong></span>
-                      {notice.linkedOpportunityId && (
-                        <span>Linked to ID: {notice.linkedOpportunityId}</span>
-                      )}
+                      {notice.linkedOpportunityId && <span>Linked to ID: {notice.linkedOpportunityId}</span>}
                     </div>
                   </div>
 
@@ -805,14 +1247,258 @@ export default function AdminPanel({ onClose }) {
           </div>
         )}
 
+        {/* MODULE 5: SERVICES (3 CARDS) */}
+        {currentTab === 'services' && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Pramukh Services (Cards)</h3>
+                <p className="text-xs text-slate-500">Website ke 3 main service sections ko customize karein</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setEditingService({
+                    title: '',
+                    serviceType: 'Overseas Jobs',
+                    badge: 'Popular',
+                    imageUrl: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80',
+                    description: '',
+                    features: []
+                  });
+                  setIsServiceModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nayi Service Add Karein</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {siteData.services?.map(srv => (
+                <div key={srv.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+                  <div>
+                    <div className="relative h-36 w-full">
+                      <img src={srv.imageUrl} alt={srv.title} className="w-full h-full object-cover" />
+                      <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white">
+                        {srv.badge}
+                      </span>
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-bold text-slate-900 text-base">{srv.title}</h4>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">{srv.description}</p>
+                      <div className="mt-3 space-y-1">
+                        {(srv.features || []).map((f, i) => (
+                          <div key={i} className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                            <Check className="w-3 h-3 text-emerald-600" /> <span>{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 pt-0 border-t border-slate-100 flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingService({
+                          ...srv,
+                          features: (srv.features || []).join('\n')
+                        });
+                        setIsServiceModalOpen(true);
+                      }}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteService(srv.id)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MODULE 6: SUCCESS STORIES / REVIEWS */}
+        {currentTab === 'testimonials' && (
+          <div className="max-w-5xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Success Stories & Reviews</h3>
+                <p className="text-xs text-slate-500">Placed candidates ki photos, quotes aur details add ya edit karein</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setEditingTestimonial({
+                    name: '',
+                    role: '',
+                    country: 'Dubai, UAE',
+                    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+                    quote: '',
+                    placedDate: 'Placed Recently',
+                    salary: ''
+                  });
+                  setIsTestimonialModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Naya Candidate Review Add Karein</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {siteData.testimonials?.map(item => (
+                <div key={item.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <p className="text-xs text-slate-600 italic leading-relaxed mb-4">"{item.quote}"</p>
+                  </div>
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <img src={item.photo} alt={item.name} className="w-10 h-10 rounded-full object-cover border" />
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">{item.name}</h4>
+                        <p className="text-[10px] text-blue-600 font-semibold">{item.role} ({item.country})</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setEditingTestimonial(item);
+                          setIsTestimonialModalOpen(true);
+                        }}
+                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTestimonial(item.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MODULE 7: FAQS */}
+        {currentTab === 'faqs' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">FAQ Management</h3>
+                <p className="text-xs text-slate-500">Website par aam taur par puche jane wale sawal-jawab</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setEditingFaq({ q: '', a: '' });
+                  setIsFaqModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Naya FAQ Add Karein</span>
+              </button>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 shadow-sm">
+              {siteData.faqs?.map(faq => (
+                <div key={faq.id} className="p-4 flex items-start justify-between gap-4">
+                  <div className="space-y-1 flex-1">
+                    <h4 className="text-sm font-bold text-slate-900">{faq.q}</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">{faq.a}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setEditingFaq(faq);
+                        setIsFaqModalOpen(true);
+                      }}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteFaq(faq.id)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MODULE 8: SECURITY & PASSWORD */}
+        {currentTab === 'security' && (
+          <div className="max-w-md mx-auto space-y-6">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">Admin Security Settings</h3>
+              <p className="text-xs text-slate-500">Apna Admin username aur password update karein</p>
+            </div>
+
+            {securityMessage && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-xs font-bold">
+                {securityMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateSecurity} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">New Username (Optional)</label>
+                <input
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="admin"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">New Password *</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 4 characters"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                  required
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-700 shadow-md"
+                >
+                  Password Update Karein
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
       </div>
 
-      {/* APPLICANT DETAIL & ACTION DRAWER/MODAL */}
+      {/* APPLICANT DETAIL MODAL */}
       {selectedApp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
-            
-            {/* Header */}
             <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-mono font-bold text-blue-400 select-all">
@@ -828,35 +1514,26 @@ export default function AdminPanel({ onClose }) {
               </button>
             </div>
 
-            {/* Body */}
             <div className="p-6 overflow-y-auto space-y-6 text-xs sm:text-sm text-slate-700">
-              
-              {/* Quick Contact Buttons (Call / WhatsApp) as specified in brief */}
               <div className="grid grid-cols-2 gap-3">
                 <a
                   href={`tel:${selectedApp.mobile}`}
                   className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
                 >
-                  <Phone className="w-4 h-4" />
-                  <span>Call {selectedApp.mobile}</span>
+                  <Phone className="w-4 h-4" /> <span>Call {selectedApp.mobile}</span>
                 </a>
-
                 <a
                   href={`https://wa.me/91${selectedApp.whatsapp || selectedApp.mobile}?text=Namaste%20${encodeURIComponent(selectedApp.fullName)},%20Overseas%20Services%20se%20aapki%20application%20(ID:%20${selectedApp.id})%20ke%20sambandh%20mein...`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>WhatsApp Message</span>
+                  <MessageSquare className="w-4 h-4" /> <span>WhatsApp Message</span>
                 </a>
               </div>
 
-              {/* Status Update Dropdown (Workflow as specified: New -> Contacted -> Documents Pending -> Processing -> Completed/Closed) */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
-                  Application Workflow Status Update
-                </label>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Workflow Status Update</label>
                 <div className="flex items-center gap-3">
                   <select
                     value={selectedApp.status}
@@ -864,17 +1541,14 @@ export default function AdminPanel({ onClose }) {
                     disabled={statusUpdating}
                     className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 font-bold bg-white text-slate-800"
                   >
-                    {statuses.map(st => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
+                    {statuses.map(st => <option key={st} value={st}>{st}</option>)}
                   </select>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(selectedApp.status)}`}>
-                    Current: {selectedApp.status}
+                    {selectedApp.status}
                   </span>
                 </div>
               </div>
 
-              {/* Candidate Info Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div>
                   <span className="text-[11px] font-bold text-slate-400 uppercase">Opportunity Applied</span>
@@ -885,7 +1559,7 @@ export default function AdminPanel({ onClose }) {
                   <p className="font-semibold text-slate-800 mt-0.5">{selectedApp.serviceType} ({selectedApp.country})</p>
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Location (District, State)</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Location</span>
                   <p className="font-semibold text-slate-800 mt-0.5">{selectedApp.district}, {selectedApp.state}</p>
                 </div>
                 <div>
@@ -902,7 +1576,7 @@ export default function AdminPanel({ onClose }) {
                 </div>
               </div>
 
-              {/* Uploaded Resume View / Download (Secure token protected) */}
+              {/* Uploaded Resume View / Download */}
               <div>
                 <span className="text-xs font-bold uppercase text-slate-500 mb-1 block">Uploaded Resume</span>
                 {selectedApp.resumeUrl ? (
@@ -921,7 +1595,6 @@ export default function AdminPanel({ onClose }) {
                 )}
               </div>
 
-              {/* Candidate Message */}
               {selectedApp.message && (
                 <div>
                   <span className="text-xs font-bold uppercase text-slate-500 mb-1 block">Candidate Message</span>
@@ -931,12 +1604,9 @@ export default function AdminPanel({ onClose }) {
                 </div>
               )}
 
-              {/* Internal Notes History & Form */}
+              {/* Internal Notes */}
               <div className="space-y-3 pt-3 border-t border-slate-200">
-                <span className="text-xs font-bold uppercase text-slate-700 block">
-                  Team Internal Notes (Follow-up log)
-                </span>
-
+                <span className="text-xs font-bold uppercase text-slate-700 block">Team Internal Notes</span>
                 {selectedApp.internalNotes && selectedApp.internalNotes.length > 0 ? (
                   <div className="space-y-2">
                     {selectedApp.internalNotes.map((n, idx) => (
@@ -958,21 +1628,16 @@ export default function AdminPanel({ onClose }) {
                     type="text"
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Add follow-up note (e.g. Call par baat hui, documents mangwaye)..."
-                    className="flex-1 px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Add follow-up note..."
+                    className="flex-1 px-3.5 py-2 text-xs border border-slate-300 rounded-xl"
                   />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900"
-                  >
+                  <button type="submit" className="px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl">
                     Add Note
                   </button>
                 </form>
               </div>
-
             </div>
 
-            {/* Footer */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
               <button
                 onClick={() => setSelectedApp(null)}
@@ -981,7 +1646,6 @@ export default function AdminPanel({ onClose }) {
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}
@@ -1030,6 +1694,31 @@ export default function AdminPanel({ onClose }) {
                     className="w-full px-3 py-2 border rounded-xl"
                     required
                   />
+                </div>
+              </div>
+
+              {/* Image URL & Presets */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Cover Image URL</label>
+                <input
+                  type="url"
+                  value={editingOpp.imageUrl || ''}
+                  onChange={(e) => setEditingOpp({ ...editingOpp, imageUrl: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl text-xs font-mono"
+                  placeholder="https://..."
+                />
+                <div className="flex items-center gap-2 overflow-x-auto pt-2">
+                  <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">Presets:</span>
+                  {imagePresets.map((p, i) => (
+                    <button
+                      type="button"
+                      key={i}
+                      onClick={() => setEditingOpp({ ...editingOpp, imageUrl: p.url })}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-blue-600 border whitespace-nowrap"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -1133,7 +1822,262 @@ export default function AdminPanel({ onClose }) {
         </div>
       )}
 
+      {/* SERVICE ADD / EDIT MODAL */}
+      {isServiceModalOpen && editingService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 space-y-4 max-h-[92vh] overflow-y-auto text-xs sm:text-sm">
+            <h3 className="text-lg font-bold text-slate-900">
+              {editingService.id ? 'Service Card Edit Karein' : 'Nayi Service Add Karein'}
+            </h3>
+
+            <form onSubmit={handleSaveService} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Service Title *</label>
+                <input
+                  type="text"
+                  value={editingService.title}
+                  onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
+                  placeholder="e.g. Overseas Jobs (Videsh Rozgar)"
+                  className="w-full px-3 py-2 border rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Service Category Name</label>
+                  <input
+                    type="text"
+                    value={editingService.serviceType}
+                    onChange={(e) => setEditingService({ ...editingService, serviceType: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Badge Tag</label>
+                  <input
+                    type="text"
+                    value={editingService.badge}
+                    onChange={(e) => setEditingService({ ...editingService, badge: e.target.value })}
+                    placeholder="e.g. Urgent Hiring"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Image URL</label>
+                <input
+                  type="url"
+                  value={editingService.imageUrl}
+                  onChange={(e) => setEditingService({ ...editingService, imageUrl: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Short Description</label>
+                <textarea
+                  rows="2"
+                  value={editingService.description}
+                  onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Features (Ek line me ek point)</label>
+                <textarea
+                  rows="3"
+                  value={typeof editingService.features === 'string' ? editingService.features : (editingService.features || []).join('\n')}
+                  onChange={(e) => setEditingService({ ...editingService, features: e.target.value })}
+                  placeholder="Direct Employer Contracts&#10;Company Stay & Food&#10;Transparent Process"
+                  className="w-full px-3 py-2 border rounded-xl"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsServiceModalOpen(false)}
+                  className="px-4 py-2 border rounded-xl font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700"
+                >
+                  Save Service
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TESTIMONIAL ADD / EDIT MODAL */}
+      {isTestimonialModalOpen && editingTestimonial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4 max-h-[92vh] overflow-y-auto text-xs sm:text-sm">
+            <h3 className="text-lg font-bold text-slate-900">
+              {editingTestimonial.id ? 'Review Edit Karein' : 'Naya Candidate Review Add Karein'}
+            </h3>
+
+            <form onSubmit={handleSaveTestimonial} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Candidate Name *</label>
+                <input
+                  type="text"
+                  value={editingTestimonial.name}
+                  onChange={(e) => setEditingTestimonial({ ...editingTestimonial, name: e.target.value })}
+                  placeholder="e.g. Rameshwar Yadav"
+                  className="w-full px-3 py-2 border rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Role / Job Title</label>
+                  <input
+                    type="text"
+                    value={editingTestimonial.role}
+                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, role: e.target.value })}
+                    placeholder="e.g. Hotel Facilities"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Placed Country</label>
+                  <input
+                    type="text"
+                    value={editingTestimonial.country}
+                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, country: e.target.value })}
+                    placeholder="e.g. Dubai, UAE"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Candidate Photo URL</label>
+                <input
+                  type="url"
+                  value={editingTestimonial.photo}
+                  onChange={(e) => setEditingTestimonial({ ...editingTestimonial, photo: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-xl text-xs font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Candidate Review / Quote *</label>
+                <textarea
+                  rows="3"
+                  value={editingTestimonial.quote}
+                  onChange={(e) => setEditingTestimonial({ ...editingTestimonial, quote: e.target.value })}
+                  placeholder="Overseas Services ke through mera selection hua..."
+                  className="w-full px-3 py-2 border rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Placed Date Text</label>
+                  <input
+                    type="text"
+                    value={editingTestimonial.placedDate}
+                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, placedDate: e.target.value })}
+                    placeholder="e.g. Placed Oct 2026"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Salary Highlight</label>
+                  <input
+                    type="text"
+                    value={editingTestimonial.salary}
+                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, salary: e.target.value })}
+                    placeholder="e.g. 2,600 AED / Month"
+                    className="w-full px-3 py-2 border rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsTestimonialModalOpen(false)}
+                  className="px-4 py-2 border rounded-xl font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700"
+                >
+                  Save Review
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* FAQ ADD / EDIT MODAL */}
+      {isFaqModalOpen && editingFaq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4 text-xs sm:text-sm">
+            <h3 className="text-lg font-bold text-slate-900">
+              {editingFaq.id ? 'FAQ Edit Karein' : 'Naya FAQ Add Karein'}
+            </h3>
+
+            <form onSubmit={handleSaveFaq} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Question (Sawal) *</label>
+                <input
+                  type="text"
+                  value={editingFaq.q}
+                  onChange={(e) => setEditingFaq({ ...editingFaq, q: e.target.value })}
+                  placeholder="e.g. Videsh jane ke liye kya passport pehle se hona zaroori hai?"
+                  className="w-full px-3 py-2 border rounded-xl"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Answer (Jawab) *</label>
+                <textarea
+                  rows="3"
+                  value={editingFaq.a}
+                  onChange={(e) => setEditingFaq({ ...editingFaq, a: e.target.value })}
+                  placeholder="Nahi, shuruat me agar aapke paas passport nahi bhi hai..."
+                  className="w-full px-3 py-2 border rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsFaqModalOpen(false)}
+                  className="px-4 py-2 border rounded-xl font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700"
+                >
+                  Save FAQ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
-

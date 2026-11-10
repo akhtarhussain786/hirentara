@@ -1,8 +1,8 @@
 import React from 'react';
 import { Star, CheckCircle, Quote, MapPin } from 'lucide-react';
 
-export default function TestimonialsSection() {
-  const stories = [
+export default function TestimonialsSection({ testimonials: propTestimonials }) {
+  const defaultStories = [
     {
       name: "Rameshwar Yadav",
       role: "Hotel Facilities & Steward",
@@ -31,6 +31,8 @@ export default function TestimonialsSection() {
       salary: "3,000 SAR / Month"
     }
   ];
+
+  const stories = (propTestimonials && propTestimonials.length > 0) ? propTestimonials : defaultStories;
 
   return (
     <section className="py-16 sm:py-24 bg-white border-t border-slate-200">

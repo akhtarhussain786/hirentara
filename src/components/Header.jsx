@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Globe, Menu, X, Shield, PhoneCall, Send, Briefcase } from 'lucide-react';
 
-export default function Header({ onOpenApply, onOpenAdmin, currentView, setCurrentView }) {
+export default function Header({ settings, onOpenApply, onOpenAdmin, currentView, setCurrentView }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const siteName = settings?.siteName || "Overseas Services";
+  const siteSubtitle = settings?.siteSubtitle || "Videsh Jobs, Visa & Attestation Portal";
 
   const scrollTo = (id) => {
     if (currentView !== 'public') {
@@ -33,9 +36,9 @@ export default function Header({ onOpenApply, onOpenAdmin, currentView, setCurre
             </div>
             <div>
               <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 group-hover:text-blue-700 transition-colors">
-                Overseas<span className="text-blue-600">Services</span>
+                {siteName}
               </span>
-              <p className="text-xs text-slate-500 font-medium">Videsh Jobs, Visa & Attestation Portal</p>
+              <p className="text-xs text-slate-500 font-medium">{siteSubtitle}</p>
             </div>
           </div>
 

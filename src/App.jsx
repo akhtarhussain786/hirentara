@@ -10,10 +10,18 @@ import OpportunityModal from './components/OpportunityModal';
 import ApplicationForm from './components/ApplicationForm';
 import Footer from './components/Footer';
 import AdminPanel from './components/AdminPanel';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 export default function App() {
-  const [notices, setNotices] = useState([]);
-  const [opportunities, setOpportunities] = useState([]);
+  const [siteData, setSiteData] = useState({
+    settings: null,
+    services: [],
+    notices: [],
+    opportunities: [],
+    allOpportunities: [],
+    testimonials: [],
+    faqs: []
+  });
   const [loading, setLoading] = useState(true);
 
   // Filter state for services/opportunities
@@ -26,20 +34,16 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [currentView, setCurrentView] = useState('public');
 
-  // Fetch initial data
+  // Fetch all site data dynamically
   const fetchData = async () => {
     try {
-      const [noticesRes, oppsRes] = await Promise.all([
-        fetch('/api/notices'),
-        fetch('/api/opportunities')
-      ]);
-      const noticesData = await noticesRes.json();
-      const oppsData = await oppsRes.json();
-
-      if (noticesData.success) setNotices(noticesData.data);
-      if (oppsData.success) setOpportunities(oppsData.data);
+      const res = await fetch('/api/site-data');
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSiteData(data.data);
+      }
     } catch (err) {
-      console.error('Error loading data:', err);
+      console.error('Error loading site data:', err);
     } finally {
       setLoading(false);
     }
@@ -49,13 +53,16 @@ export default function App() {
     fetchData();
   }, []);
 
+  const opportunities = siteData.allOpportunities && siteData.allOpportunities.length > 0 
+    ? siteData.allOpportunities 
+    : siteData.opportunities;
+
   // When clicking a notice in NoticeStrip
   const handleSelectOpportunityById = (oppId) => {
     const found = opportunities.find((o) => o.id === oppId);
     if (found) {
       setDetailsOpp(found);
     } else {
-      // If no direct ID match, open general apply form
       setApplyOpp(null);
       setIsApplyModalOpen(true);
     }
@@ -79,12 +86,13 @@ export default function App() {
       
       {/* 1. Rotating Notice Strip */}
       <NoticeStrip
-        notices={notices}
+        notices={siteData.notices}
         onSelectOpportunityById={handleSelectOpportunityById}
       />
 
       {/* 2. Top Header / Navigation */}
       <Header
+        settings={siteData.settings}
         onOpenApply={() => handleOpenApply(null)}
         onOpenAdmin={() => setIsAdminOpen(true)}
         currentView={currentView}
@@ -96,6 +104,7 @@ export default function App() {
         
         {/* 3. Hero Banner with 3-Step Visitor Safar */}
         <Hero
+          settings={siteData.settings}
           onExplore={() => {
             const el = document.getElementById('opportunities');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -105,6 +114,7 @@ export default function App() {
 
         {/* 4. Three Core Services Cards */}
         <ServicesSection
+          services={siteData.services}
           onSelectCategory={handleSelectCategory}
           onApplyForService={(serviceType) => {
             handleOpenApply({
@@ -126,14 +136,17 @@ export default function App() {
         />
 
         {/* 6. Success Stories & Real Candidate Testimonials */}
-        <TestimonialsSection />
+        <TestimonialsSection testimonials={siteData.testimonials} />
 
         {/* 7. Frequently Asked Questions */}
-        <FAQSection />
+        <FAQSection faqs={siteData.faqs} settings={siteData.settings} />
       </main>
 
       {/* 6. Footer with Address, Call, WhatsApp Buttons */}
-      <Footer onOpenAdmin={() => setIsAdminOpen(true)} />
+      <Footer settings={siteData.settings} onOpenAdmin={() => setIsAdminOpen(true)} />
+
+      {/* 8. Floating WhatsApp Help Desk */}
+      <FloatingWhatsApp settings={siteData.settings} />
 
       {/* Reusable Details Page / Modal */}
       {detailsOpp && (

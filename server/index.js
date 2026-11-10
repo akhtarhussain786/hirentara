@@ -71,6 +71,23 @@ app.use('/uploads', (req, res, next) => {
 
 // ----------------- PUBLIC ENDPOINTS -----------------
 
+// Get entire public site content (Settings, Services, Notices, Opportunities, Testimonials, FAQs)
+app.get('/api/site-data', (req, res) => {
+  const db = readDb();
+  res.json({
+    success: true,
+    data: {
+      settings: db.settings,
+      services: db.services || [],
+      notices: (db.notices || []).filter(n => n.active),
+      opportunities: (db.opportunities || []).filter(o => o.status === 'open'),
+      allOpportunities: db.opportunities || [],
+      testimonials: db.testimonials || [],
+      faqs: db.faqs || []
+    }
+  });
+});
+
 // Get all active notices
 app.get('/api/notices', (req, res) => {
   const db = readDb();
@@ -243,7 +260,7 @@ app.delete('/api/admin/notices/:id', requireAdmin, (req, res) => {
 
 // Admin create opportunity
 app.post('/api/admin/opportunities', requireAdmin, (req, res) => {
-  const { title, serviceType, country, salary, facilities, eligibility, charges, documentsRequired, deadline, status, featured } = req.body;
+  const { title, serviceType, country, imageUrl, salary, facilities, eligibility, charges, documentsRequired, deadline, status, featured } = req.body;
   if (!title || !serviceType || !country) {
     return res.status(400).json({ success: false, message: 'Title, Service Type and Country are required' });
   }
@@ -253,6 +270,7 @@ app.post('/api/admin/opportunities', requireAdmin, (req, res) => {
     title,
     serviceType,
     country,
+    imageUrl: imageUrl || 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80',
     salary: salary || '',
     facilities: facilities || '',
     eligibility: eligibility || '',
@@ -461,6 +479,142 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
   };
 
   res.json({ success: true, data: stats });
+});
+
+// Admin get complete site content for editing
+app.get('/api/admin/site-data', requireAdmin, (req, res) => {
+  const db = readDb();
+  res.json({
+    success: true,
+    data: {
+      settings: db.settings,
+      services: db.services || [],
+      notices: db.notices || [],
+      opportunities: db.opportunities || [],
+      testimonials: db.testimonials || [],
+      faqs: db.faqs || []
+    }
+  });
+});
+
+// Admin update website general settings & branding
+app.put('/api/admin/settings', requireAdmin, (req, res) => {
+  const db = readDb();
+  db.settings = { ...db.settings, ...req.body };
+  writeDb(db);
+  res.json({ success: true, message: 'Website settings updated successfully', data: db.settings });
+});
+
+// Admin Services CRUD
+app.post('/api/admin/services', requireAdmin, (req, res) => {
+  const db = readDb();
+  const newService = {
+    id: 'srv-' + Date.now(),
+    title: req.body.title || 'New Service',
+    serviceType: req.body.serviceType || 'Overseas Service',
+    badge: req.body.badge || 'Verified',
+    imageUrl: req.body.imageUrl || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80',
+    description: req.body.description || '',
+    features: req.body.features || []
+  };
+  db.services = db.services || [];
+  db.services.push(newService);
+  writeDb(db);
+  res.json({ success: true, data: newService });
+});
+
+app.put('/api/admin/services/:id', requireAdmin, (req, res) => {
+  const db = readDb();
+  const index = (db.services || []).findIndex(s => s.id === req.params.id);
+  if (index === -1) return res.status(404).json({ success: false, message: 'Service not found' });
+  db.services[index] = { ...db.services[index], ...req.body };
+  writeDb(db);
+  res.json({ success: true, data: db.services[index] });
+});
+
+app.delete('/api/admin/services/:id', requireAdmin, (req, res) => {
+  const db = readDb();
+  db.services = (db.services || []).filter(s => s.id !== req.params.id);
+  writeDb(db);
+  res.json({ success: true, message: 'Service deleted successfully' });
+});
+
+// Admin Testimonials CRUD
+app.post('/api/admin/testimonials', requireAdmin, (req, res) => {
+  const db = readDb();
+  const newTestimonial = {
+    id: 'test-' + Date.now(),
+    name: req.body.name || 'Candidate Name',
+    role: req.body.role || 'Overseas Role',
+    country: req.body.country || 'Destination',
+    photo: req.body.photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    quote: req.body.quote || '',
+    placedDate: req.body.placedDate || 'Placed Recently',
+    salary: req.body.salary || ''
+  };
+  db.testimonials = db.testimonials || [];
+  db.testimonials.push(newTestimonial);
+  writeDb(db);
+  res.json({ success: true, data: newTestimonial });
+});
+
+app.put('/api/admin/testimonials/:id', requireAdmin, (req, res) => {
+  const db = readDb();
+  const index = (db.testimonials || []).findIndex(t => t.id === req.params.id);
+  if (index === -1) return res.status(404).json({ success: false, message: 'Testimonial not found' });
+  db.testimonials[index] = { ...db.testimonials[index], ...req.body };
+  writeDb(db);
+  res.json({ success: true, data: db.testimonials[index] });
+});
+
+app.delete('/api/admin/testimonials/:id', requireAdmin, (req, res) => {
+  const db = readDb();
+  db.testimonials = (db.testimonials || []).filter(t => t.id !== req.params.id);
+  writeDb(db);
+  res.json({ success: true, message: 'Testimonial deleted successfully' });
+});
+
+// Admin FAQ CRUD
+app.post('/api/admin/faqs', requireAdmin, (req, res) => {
+  const db = readDb();
+  const newFaq = {
+    id: 'faq-' + Date.now(),
+    q: req.body.q || 'New Question',
+    a: req.body.a || 'Answer'
+  };
+  db.faqs = db.faqs || [];
+  db.faqs.push(newFaq);
+  writeDb(db);
+  res.json({ success: true, data: newFaq });
+});
+
+app.put('/api/admin/faqs/:id', requireAdmin, (req, res) => {
+  const db = readDb();
+  const index = (db.faqs || []).findIndex(f => f.id === req.params.id);
+  if (index === -1) return res.status(404).json({ success: false, message: 'FAQ not found' });
+  db.faqs[index] = { ...db.faqs[index], ...req.body };
+  writeDb(db);
+  res.json({ success: true, data: db.faqs[index] });
+});
+
+app.delete('/api/admin/faqs/:id', requireAdmin, (req, res) => {
+  const db = readDb();
+  db.faqs = (db.faqs || []).filter(f => f.id !== req.params.id);
+  writeDb(db);
+  res.json({ success: true, message: 'FAQ deleted successfully' });
+});
+
+// Admin Security Update (Username & Password)
+app.put('/api/admin/security', requireAdmin, (req, res) => {
+  const { newUsername, newPassword } = req.body;
+  if (!newPassword || newPassword.length < 4) {
+    return res.status(400).json({ success: false, message: 'Password kam se kam 4 characters ka hona chahiye.' });
+  }
+  const db = readDb();
+  db.admin.username = newUsername || db.admin.username;
+  db.admin.password = newPassword;
+  writeDb(db);
+  res.json({ success: true, message: 'Admin username aur password safaltapoorvak badal gaya.' });
 });
 
 // Serve frontend in production build if dist directory exists
