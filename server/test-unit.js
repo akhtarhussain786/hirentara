@@ -14,7 +14,7 @@ console.log(`  - Applications count: ${db.applications?.length}`);
 const id1 = generateApplicationId();
 const id2 = generateApplicationId();
 console.log(`✓ Generated Application IDs: ${id1}, ${id2}`);
-if (!id1.startsWith('HT-') || id1 === id2) {
+if (!id1.startsWith('OS-') || id1 === id2) {
   throw new Error('Application ID generation mismatch');
 }
 
@@ -78,4 +78,3 @@ writeDb(db);
 console.log('✓ Test cleanup completed');
 
 console.log('\n>>> ALL MODULE & BACKEND LOGIC CHECKS PASSED PERFECTLY! <<<');
-

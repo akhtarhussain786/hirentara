@@ -6,6 +6,7 @@ export default function FAQSection({ faqs: propFaqs, settings }) {
 
   const phone = settings?.phone || "+919876543210";
   const whatsapp = settings?.whatsapp || "919876543210";
+  const whatsappMessage = encodeURIComponent('Namaste, mujhe videsh services ke bare me sawal hai.');
 
   const defaultFaqs = [
     {
@@ -92,14 +93,14 @@ export default function FAQSection({ faqs: propFaqs, settings }) {
 
           <div className="flex items-center gap-3">
             <a
-              href="tel:+919876543210"
+              href={`tel:${phone}`}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-md hover:bg-slate-100 transition-colors"
             >
               <PhoneCall className="w-3.5 h-3.5 text-blue-600" />
               <span>Call Helpline</span>
             </a>
             <a
-              href="https://wa.me/919876543210?text=Namaste,%20mujhe%20videsh%20services%20ke%20bare%20me%20sawal%20hai."
+              href={`https://wa.me/${whatsapp}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md transition-colors"
@@ -114,4 +115,3 @@ export default function FAQSection({ faqs: propFaqs, settings }) {
     </section>
   );
 }
-

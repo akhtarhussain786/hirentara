@@ -53,6 +53,7 @@ export default function AdminPanel({ onClose }) {
 
   // Testimonials modal state
   const [editingTestimonial, setEditingTestimonial] = useState(null);
+  const [testimonialPhotoFile, setTestimonialPhotoFile] = useState(null);
   const [isTestimonialModalOpen, setIsTestimonialModalOpen] = useState(false);
 
   // FAQ modal state
@@ -410,19 +411,25 @@ export default function AdminPanel({ onClose }) {
     const method = isEdit ? 'PUT' : 'POST';
 
     try {
+      const payload = new FormData();
+      Object.entries(editingTestimonial).forEach(([key, value]) => {
+        if (key !== 'id') payload.append(key, value || '');
+      });
+      if (testimonialPhotoFile) payload.append('photoFile', testimonialPhotoFile);
+
       const res = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
           'x-admin-token': authToken
         },
-        body: JSON.stringify(editingTestimonial)
+        body: payload
       });
       const data = await res.json();
       if (data.success) {
         fetchCompleteSiteData();
         setIsTestimonialModalOpen(false);
         setEditingTestimonial(null);
+        setTestimonialPhotoFile(null);
       }
     } catch (e) {}
   };
@@ -501,8 +508,8 @@ export default function AdminPanel({ onClose }) {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'New': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Contacted': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'New': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      case 'Contacted': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'Documents Pending': return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'Processing': return 'bg-cyan-100 text-cyan-800 border-cyan-200';
       case 'Completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
@@ -524,17 +531,40 @@ export default function AdminPanel({ onClose }) {
   // LOGIN SCREEN
   if (!authToken) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-sm animate-fadeIn">
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden p-8 border border-slate-100">
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-blue-500/30">
-              <Shield className="w-7 h-7" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071126]/90 backdrop-blur-md animate-fadeIn">
+        <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/20 grid md:grid-cols-[1.05fr_1fr]">
+          <div className="hidden md:flex relative overflow-hidden bg-gradient-to-br from-[#071126] via-[#111f45] to-[#08a39e] p-10 text-white flex-col justify-between">
+            <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full border-[32px] border-white/10" />
+            <div className="absolute -left-24 -bottom-28 w-72 h-72 rounded-full border-[40px] border-white/10" />
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl mb-8">
+                <img src="/logo.jpg" alt="Hirentara logo" className="w-full h-full object-contain rounded-xl" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-200 mb-3">Hirentara Portal</p>
+              <h3 className="text-3xl font-black leading-tight">Manage your overseas<br />success story.</h3>
+              <p className="mt-4 text-sm leading-relaxed text-slate-300 max-w-xs">
+                Leads, opportunities and website content — all in one secure workspace.
+              </p>
             </div>
-            <h3 className="text-2xl font-black text-slate-900">Admin Control Panel</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Authorized team login for managing leads, content & website settings
-            </p>
+            <div className="relative flex items-center gap-2 text-xs text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-teal-300 shadow-[0_0_12px_#7bd9d5]" />
+              Secure team workspace
+            </div>
           </div>
+
+          <div className="p-7 sm:p-10">
+            <div className="flex items-center gap-3 mb-8 md:hidden">
+              <img src="/logo.jpg" alt="Hirentara logo" className="w-11 h-11 object-contain rounded-xl border border-slate-200" />
+              <div>
+                <p className="font-black text-slate-900">Hirentara</p>
+                <p className="text-[11px] text-slate-500">Admin workspace</p>
+              </div>
+            </div>
+            <div className="mb-7">
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-teal-600 mb-2">Welcome back</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900">Admin sign in</h3>
+              <p className="text-sm text-slate-500 mt-1">Access your website and lead management tools.</p>
+            </div>
 
           {loginError && (
             <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
@@ -545,40 +575,40 @@ export default function AdminPanel({ onClose }) {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Username</label>
+              <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+              <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password (default: admin123)"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 required
               />
-              <p className="text-[11px] text-slate-400 mt-1">Default demo password: <code className="text-blue-600 font-bold">admin123</code></p>
+              <p className="text-[11px] text-slate-400 mt-1">Default demo password: <code className="text-teal-700 font-bold">admin123</code></p>
             </div>
 
             <div className="pt-2 flex items-center gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-1/3 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
+                className="w-1/3 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors"
               >
                 Back to Site
               </button>
               <button
                 type="submit"
-                className="w-2/3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition-all"
+                className="w-2/3 py-3 bg-[#111f45] hover:bg-[#08a39e] text-white font-bold rounded-xl text-xs shadow-lg shadow-slate-900/15 transition-all"
               >
                 Login to Dashboard
               </button>
@@ -586,33 +616,34 @@ export default function AdminPanel({ onClose }) {
           </form>
         </div>
       </div>
+      </div>
     );
   }
 
   // LOGGED IN DASHBOARD
   return (
-    <div className="fixed inset-0 z-50 bg-slate-100 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#f4f7fb] flex flex-col overflow-hidden">
       
       {/* Top Navbar */}
-      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between flex-shrink-0 shadow-xs">
+      <header className="bg-[#071126] text-white px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between flex-shrink-0 shadow-xl shadow-[#071126]/20">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md">
-            <Shield className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md">
+            <img src="/logo.jpg" alt="Hirentara logo" className="w-full h-full object-contain rounded-lg" />
           </div>
           <div>
-            <h2 className="font-extrabold text-base sm:text-lg text-slate-900 leading-tight">
-              Overseas Master Control
+            <h2 className="font-extrabold text-base sm:text-lg text-white leading-tight">
+              Hirentara <span className="text-teal-300">Control Centre</span>
             </h2>
-            <p className="text-[11px] text-slate-500 font-medium">Poori Website & Lead Management</p>
+            <p className="text-[11px] text-slate-400 font-medium">Website & lead management workspace</p>
           </div>
         </div>
 
         {/* Tab Navigation Menu */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl overflow-x-auto text-xs font-bold">
+        <div className="hidden lg:flex items-center gap-1.5 bg-white/10 p-1 rounded-2xl overflow-x-auto text-xs font-bold">
           <button
             onClick={() => setCurrentTab('applications')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'applications' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'applications' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             📋 Applications ({stats?.totalApplications || applications.length})
@@ -621,7 +652,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('settings')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'settings' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'settings' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             ⚙️ Site & Branding
@@ -630,7 +661,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('opportunities')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'opportunities' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'opportunities' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             💼 Opportunities ({siteData.opportunities?.length || 0})
@@ -639,7 +670,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('notices')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'notices' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'notices' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             📢 Notices ({siteData.notices?.length || 0})
@@ -648,7 +679,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('services')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'services' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'services' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             🛠️ 3 Services
@@ -657,7 +688,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('testimonials')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'testimonials' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'testimonials' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             🌟 Reviews
@@ -666,7 +697,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('faqs')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'faqs' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'faqs' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             ❓ FAQs
@@ -675,7 +706,7 @@ export default function AdminPanel({ onClose }) {
           <button
             onClick={() => setCurrentTab('security')}
             className={`px-3.5 py-2 rounded-xl transition-all ${
-              currentTab === 'security' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'security' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
             }`}
           >
             🔐 Password
@@ -686,13 +717,13 @@ export default function AdminPanel({ onClose }) {
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-lg"
+            className="px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-white/10 hover:text-white rounded-lg"
           >
             Live Site
           </button>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-200 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Logout</span>
@@ -701,7 +732,7 @@ export default function AdminPanel({ onClose }) {
       </header>
 
       {/* Mobile Tab Scroll Menu */}
-      <div className="lg:hidden flex items-center gap-1 overflow-x-auto bg-white border-b border-slate-200 p-2 text-xs font-bold scrollbar-none">
+      <div className="lg:hidden flex items-center gap-1 overflow-x-auto bg-[#111f45] border-b border-white/10 p-2 text-xs font-bold scrollbar-none">
         {[
           { id: 'applications', label: 'Applications' },
           { id: 'settings', label: 'Settings' },
@@ -716,7 +747,7 @@ export default function AdminPanel({ onClose }) {
             key={t.id}
             onClick={() => setCurrentTab(t.id)}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap ${
-              currentTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 bg-slate-50'
+              currentTab === t.id ? 'bg-teal-500 text-white' : 'text-slate-300 bg-white/10'
             }`}
           >
             {t.label}
@@ -1351,6 +1382,7 @@ export default function AdminPanel({ onClose }) {
                     placedDate: 'Placed Recently',
                     salary: ''
                   });
+                  setTestimonialPhotoFile(null);
                   setIsTestimonialModalOpen(true);
                 }}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm"
@@ -1379,6 +1411,7 @@ export default function AdminPanel({ onClose }) {
                       <button
                         onClick={() => {
                           setEditingTestimonial(item);
+                          setTestimonialPhotoFile(null);
                           setIsTestimonialModalOpen(true);
                         }}
                         className="p-1 text-blue-600 hover:bg-blue-50 rounded"
@@ -1968,7 +2001,28 @@ export default function AdminPanel({ onClose }) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Candidate Photo URL</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Candidate Photo Upload</label>
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-teal-300 bg-teal-50/60">
+                  <div className="w-14 h-14 rounded-full bg-white border border-slate-200 overflow-hidden flex-shrink-0">
+                    {(testimonialPhotoFile || editingTestimonial.photo) && (
+                      <img
+                        src={testimonialPhotoFile ? URL.createObjectURL(testimonialPhotoFile) : editingTestimonial.photo}
+                        alt="Candidate preview"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => setTestimonialPhotoFile(e.target.files?.[0] || null)}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#111f45] file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-[#08a39e]"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">JPG, PNG ya WEBP, maximum 5 MB</p>
+                  </div>
+                </div>
+                <label className="block text-[11px] font-bold text-slate-500 mt-3 mb-1">Photo URL (optional fallback)</label>
                 <input
                   type="url"
                   value={editingTestimonial.photo}

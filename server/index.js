@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as XLSX from 'xlsx';
-import { readDb, writeDb, generateApplicationId } from './db.js';
+import { readDb, writeDb, generateApplicationId, hashPassword, verifyPassword } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +17,11 @@ const PORT = process.env.PORT || 3000;
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+const TESTIMONIAL_IMAGES_DIR = path.join(UPLOADS_DIR, 'testimonials');
+if (!fs.existsSync(TESTIMONIAL_IMAGES_DIR)) {
+  fs.mkdirSync(TESTIMONIAL_IMAGES_DIR, { recursive: true });
 }
 
 // Multer storage configuration
@@ -45,6 +50,22 @@ const upload = multer({
   }
 });
 
+const testimonialImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, TESTIMONIAL_IMAGES_DIR),
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'testimonial-' + uniqueSuffix + path.extname(file.originalname).toLowerCase());
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowed.includes(ext));
+  }
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -68,6 +89,7 @@ app.use('/uploads', (req, res, next) => {
   }
   return res.status(403).json({ success: false, message: 'Uploads are restricted to authorized admin only.' });
 }, express.static(UPLOADS_DIR));
+app.use('/testimonial-images', express.static(TESTIMONIAL_IMAGES_DIR));
 
 // ----------------- PUBLIC ENDPOINTS -----------------
 
@@ -203,7 +225,11 @@ app.post('/api/applications', upload.single('resume'), (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   const db = readDb();
-  if (username === db.admin.username && password === db.admin.password) {
+  if (username === db.admin.username && verifyPassword(password, db.admin.password)) {
+    if (!db.admin.password.startsWith('scrypt$')) {
+      db.admin.password = hashPassword(password);
+      writeDb(db);
+    }
     const token = 'token-' + Date.now() + '-' + Math.random().toString(36).substring(2);
     activeSessions.add(token);
     return res.json({ success: true, token, message: 'Admin login successful' });
@@ -551,14 +577,14 @@ app.delete('/api/admin/services/:id', requireAdmin, (req, res) => {
 });
 
 // Admin Testimonials CRUD
-app.post('/api/admin/testimonials', requireAdmin, (req, res) => {
+app.post('/api/admin/testimonials', requireAdmin, testimonialImageUpload.single('photoFile'), (req, res) => {
   const db = readDb();
   const newTestimonial = {
     id: 'test-' + Date.now(),
     name: req.body.name || 'Candidate Name',
     role: req.body.role || 'Overseas Role',
     country: req.body.country || 'Destination',
-    photo: req.body.photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    photo: req.file ? `/testimonial-images/${req.file.filename}` : (req.body.photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'),
     quote: req.body.quote || '',
     placedDate: req.body.placedDate || 'Placed Recently',
     salary: req.body.salary || ''
@@ -569,11 +595,15 @@ app.post('/api/admin/testimonials', requireAdmin, (req, res) => {
   res.json({ success: true, data: newTestimonial });
 });
 
-app.put('/api/admin/testimonials/:id', requireAdmin, (req, res) => {
+app.put('/api/admin/testimonials/:id', requireAdmin, testimonialImageUpload.single('photoFile'), (req, res) => {
   const db = readDb();
   const index = (db.testimonials || []).findIndex(t => t.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: 'Testimonial not found' });
-  db.testimonials[index] = { ...db.testimonials[index], ...req.body };
+  db.testimonials[index] = {
+    ...db.testimonials[index],
+    ...req.body,
+    ...(req.file ? { photo: `/testimonial-images/${req.file.filename}` } : {})
+  };
   writeDb(db);
   res.json({ success: true, data: db.testimonials[index] });
 });
@@ -623,7 +653,7 @@ app.put('/api/admin/security', requireAdmin, (req, res) => {
   }
   const db = readDb();
   db.admin.username = newUsername || db.admin.username;
-  db.admin.password = newPassword;
+  db.admin.password = hashPassword(newPassword);
   writeDb(db);
   res.json({ success: true, message: 'Admin username aur password safaltapoorvak badal gaya.' });
 });
@@ -681,4 +711,3 @@ server.on('error', (err) => {
     console.error('[ERROR] Server listen failed:', err);
   }
 });
-

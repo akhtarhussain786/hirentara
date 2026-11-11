@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,7 +16,7 @@ if (!fs.existsSync(DATA_DIR)) {
 export const defaultData = {
   admin: {
     username: "admin",
-    password: "admin123"
+    password: "scrypt$db914bc054127b607b391fcad81673c3$5aa5562389c81909f2749d58f9e715578496004c9de5b679f82cb289c57a03b4f5cd006f5815e6348c1d1a406c424248dd5eab75eb541662685a53cb271a3a7c"
   },
   settings: {
     siteName: "Hirentara",
@@ -381,5 +382,25 @@ export function generateApplicationId() {
   const db = readDb();
   const count = (db.applications?.length || 0) + 1;
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  return `HT-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;
+  return `OS-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;
+}
+
+export function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `scrypt$${salt}$${hash}`;
+}
+
+export function verifyPassword(password, storedPassword) {
+  if (!storedPassword) return false;
+  if (!storedPassword.startsWith('scrypt$')) {
+    return password === storedPassword;
+  }
+  const [, salt, storedHash] = storedPassword.split('$');
+  if (!salt || !storedHash) return false;
+  const derivedHash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(derivedHash, 'hex'),
+    Buffer.from(storedHash, 'hex')
+  );
 }

@@ -33,7 +33,7 @@ Ek complete, mobile-friendly website aur lead management system jo **Overseas Se
 ---
 
 ### 2. Admin Panel (Lead & Content Management)
-- **Protected Login**: Secure authentication (`admin` / `admin123`).
+- **Protected Login**: Secure authentication (`admin` / `admin123`); passwords are stored as scrypt hashes.
 - **Dashboard & Stats**: Total Applications, New, Contacted, Documents Pending, Processing, Completed, Closed counts.
 - **Application Management**:
   - Search by Name, Mobile number, Application ID.
@@ -70,7 +70,7 @@ Fir server start karein:
 ```bash
 npm start
 ```
-Browser me kholein: **http://localhost:5000**
+Browser me kholein: **http://localhost:3000**
 
 ---
 
@@ -80,11 +80,10 @@ Agar aap live code editing karna chahte hain:
 npm run dev
 ```
 - Client runs on: **http://localhost:5173**
-- Backend API runs on: **http://localhost:5000** (Proxy automatically configured)
+- Backend API runs on: **http://localhost:3000** (Proxy automatically configured)
 
 ---
 
 ## 🔑 Admin Credentials
 - **Username**: `admin`
 - **Password**: `admin123`
-

@@ -1,7 +1,7 @@
 {
   "admin": {
     "username": "admin",
-    "password": "admin123"
+    "password": "scrypt$db914bc054127b607b391fcad81673c3$5aa5562389c81909f2749d58f9e715578496004c9de5b679f82cb289c57a03b4f5cd006f5815e6348c1d1a406c424248dd5eab75eb541662685a53cb271a3a7c"
   },
   "settings": {
     "siteName": "Hirentara",

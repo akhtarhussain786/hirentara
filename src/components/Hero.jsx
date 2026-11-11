@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowRight, PlaneTakeoff, ShieldCheck, CheckCircle2, Star, Users, Award, MapPin } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowRight, PlaneTakeoff, ShieldCheck, CheckCircle2, Award, MapPin, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 export default function Hero({ settings, onExplore, onApply }) {
   const heroTitle = settings?.heroTitle || "Videsh Jane Ka Sapna,";
@@ -10,6 +10,57 @@ export default function Hero({ settings, onExplore, onApply }) {
   const placedCount = settings?.placedCount || "5,400+";
   const visaSuccessRate = settings?.visaSuccessRate || "98.4%";
   const genuineContracts = settings?.genuineContracts || "100%";
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const heroSlides = [
+    {
+      image: heroImageUrl,
+      eyebrow: 'Featured Destination',
+      title: 'Dubai: Apka Global Career Yahan Se Shuru Ho Sakta Hai',
+      detail: 'Hotel, facility aur hospitality roles with verified employers.',
+      motivation: '“Sahi guidance ke saath har sapna ek career ban sakta hai.”',
+      accent: 'from-[#071126] via-[#111f45]/70 to-transparent'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=1200&q=85',
+      eyebrow: 'Europe Work Permit',
+      title: 'Poland Mein Naye Mauke Aapka Intezaar Kar Rahe Hain',
+      detail: 'Warehouse, logistics aur skilled work opportunities.',
+      motivation: '“Aaj ka ek bold decision, kal ki behtar zindagi badal sakta hai.”',
+      accent: 'from-[#071126] via-[#172754]/70 to-transparent'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?auto=format&fit=crop&w=1200&q=85',
+      eyebrow: 'Safe & Legal Process',
+      title: 'Videsh Jaane Ka Safar, Bharose Ke Saath',
+      detail: 'Visa counselling, document attestation aur complete support.',
+      motivation: '“Aapka passport sirf document nahi, naye future ka ticket hai.”',
+      accent: 'from-[#071126] via-[#086b68]/70 to-transparent'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85',
+      eyebrow: 'Verified Opportunities',
+      title: 'Apni Mehnat Ko Global Pehchaan Dijiye',
+      detail: 'Transparent information, genuine contracts aur dedicated counsellors.',
+      motivation: '“Sapne wahi sach hote hain jinhe hum pehla kadam de dete hain.”',
+      accent: 'from-[#071126] via-[#121f45]/70 to-transparent'
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((current) => (current + 1) % heroSlides.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const showSlide = (direction) => {
+    setActiveSlide((current) => (
+      direction === 'next'
+        ? (current + 1) % heroSlides.length
+        : (current - 1 + heroSlides.length) % heroSlides.length
+    ));
+  };
 
   const destinationCountries = [
     { name: 'Dubai (UAE)', flag: '🇦🇪', openJobs: '18+ Openings' },
@@ -95,23 +146,65 @@ export default function Hero({ settings, onExplore, onApply }) {
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-md lg:max-w-none">
               
-              {/* Main Real Image (Dubai & International Career) */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-[4/3] sm:aspect-[4/3] group">
-                <img
-                  src={heroImageUrl}
-                  alt="International Career and Visa Opportunities"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-black/20" />
-                
-                {/* Image Overlay Label */}
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-600/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-white inline-block mb-1">
-                    Featured Destination
+              {/* Motivational destination carousel */}
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-[4/3] sm:aspect-[4/3] group bg-[#071126]">
+                {heroSlides.map((slide, index) => (
+                  <img
+                    key={slide.image}
+                    src={slide.image}
+                    alt={slide.title}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${
+                      index === activeSlide ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
+                    }`}
+                  />
+                ))}
+                <div className={`absolute inset-0 bg-gradient-to-t ${heroSlides[activeSlide].accent}`} />
+
+                <button
+                  type="button"
+                  onClick={() => showSlide('previous')}
+                  aria-label="Previous home banner"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => showSlide('next')}
+                  aria-label="Next home banner"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                <div className="absolute top-4 right-4 flex gap-1.5">
+                  {heroSlides.map((slide, index) => (
+                    <button
+                      type="button"
+                      key={slide.eyebrow}
+                      onClick={() => setActiveSlide(index)}
+                      aria-label={`Show banner ${index + 1}`}
+                      className={`h-1.5 rounded-full transition-all ${
+                        index === activeSlide ? 'w-7 bg-teal-300' : 'w-2 bg-white/60'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="absolute bottom-5 left-6 right-6 text-white">
+                  <span className="text-[10px] font-black uppercase tracking-widest bg-teal-500/90 backdrop-blur-sm px-2.5 py-1 rounded-full inline-block mb-2">
+                    {heroSlides[activeSlide].eyebrow}
                   </span>
-                  <p className="text-base font-extrabold text-white leading-tight">
-                    United Arab Emirates (Dubai) & European Work Permits
+                  <p className="text-lg sm:text-xl font-black text-white leading-tight">
+                    {heroSlides[activeSlide].title}
                   </p>
+                  <p className="text-xs text-slate-200 mt-1.5">
+                    {heroSlides[activeSlide].detail}
+                  </p>
+                  <div className="flex items-start gap-1.5 mt-3 text-[11px] text-teal-100 font-semibold">
+                    <Quote className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <span>{heroSlides[activeSlide].motivation}</span>
+                  </div>
                 </div>
               </div>
 
