@@ -82,7 +82,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#f5f7fb] text-slate-800">
       
       {/* 1. Rotating Notice Strip */}
       <NoticeStrip
@@ -186,4 +186,3 @@ export default function App() {
     </div>
   );
 }
-

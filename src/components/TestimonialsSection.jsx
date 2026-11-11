@@ -57,7 +57,7 @@ export default function TestimonialsSection({ testimonials: propTestimonials }) 
           {stories.map((s, idx) => (
             <div
               key={idx}
-              className="bg-slate-50 hover:bg-white rounded-3xl p-6 border border-slate-200/90 hover:border-blue-400 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+              className="premium-card bg-slate-50 hover:bg-white rounded-3xl p-6 border border-slate-200/90 hover:border-teal-400 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
             >
               <div>
                 {/* Rating Stars */}
@@ -99,4 +99,3 @@ export default function TestimonialsSection({ testimonials: propTestimonials }) 
     </section>
   );
 }
-

@@ -53,7 +53,7 @@ export default function ServicesSection({ services: propServices, onSelectCatego
   const services = (propServices && propServices.length > 0) ? propServices : defaultServices;
 
   return (
-    <section id="services" className="py-16 sm:py-24 bg-white">
+    <section id="services" className="brand-section py-16 sm:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -79,7 +79,7 @@ export default function ServicesSection({ services: propServices, onSelectCatego
             return (
               <div
                 key={srv.id}
-                className="group relative bg-white rounded-3xl border border-slate-200/90 hover:border-blue-500 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+                className="premium-card group relative bg-white rounded-3xl border border-slate-200/90 hover:border-teal-400 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden"
               >
                 <div>
                   {/* Real Image Banner */}

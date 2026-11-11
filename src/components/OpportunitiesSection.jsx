@@ -23,7 +23,7 @@ export default function OpportunitiesSection({
   });
 
   return (
-    <section id="opportunities" className="py-16 sm:py-24 bg-slate-50 border-t border-slate-200">
+    <section id="opportunities" className="brand-section py-16 sm:py-24 bg-slate-50 border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -86,8 +86,8 @@ export default function OpportunitiesSection({
               return (
                 <div
                   key={item.id}
-                  className={`bg-white rounded-3xl border ${
-                    isClosed ? 'border-slate-200 opacity-75' : 'border-slate-200/90 hover:border-blue-400'
+                  className={`premium-card bg-white rounded-3xl border ${
+                    isClosed ? 'border-slate-200 opacity-75' : 'border-slate-200/90 hover:border-teal-400'
                   } shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden group`}
                 >
                   <div>
