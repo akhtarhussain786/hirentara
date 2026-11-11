@@ -145,6 +145,17 @@ app.post('/api/applications', upload.single('resume'), (req, res) => {
     }
 
     const db = readDb();
+
+    if (opportunityId) {
+      const targetOpp = (db.opportunities || []).find(o => o.id === opportunityId);
+      if (targetOpp && targetOpp.status === 'closed') {
+        return res.status(400).json({
+          success: false,
+          message: 'Yeh opportunity abhi closed hai. Is par application band hai.'
+        });
+      }
+    }
+
     const newApplicationId = generateApplicationId();
 
     const applicationRecord = {

@@ -3,9 +3,11 @@ import { Globe, Menu, X, Shield, PhoneCall, Send, Briefcase } from 'lucide-react
 
 export default function Header({ settings, onOpenApply, onOpenAdmin, currentView, setCurrentView }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
-  const siteName = settings?.siteName || "Overseas Services";
+  const siteName = settings?.siteName || "Hirentara";
   const siteSubtitle = settings?.siteSubtitle || "Videsh Jobs, Visa & Attestation Portal";
+  const logoUrl = settings?.logoUrl || "/logo.jpg";
 
   const scrollTo = (id) => {
     if (currentView !== 'public') {
@@ -31,11 +33,20 @@ export default function Header({ settings, onOpenApply, onOpenAdmin, currentView
             onClick={() => { setCurrentView('public'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <Globe className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
+              {logoUrl && !logoError ? (
+                <img
+                  src={logoUrl}
+                  alt={`${siteName} Logo`}
+                  onError={() => setLogoError(true)}
+                  className="w-full h-full object-contain rounded-lg"
+                />
+              ) : (
+                <Globe className="w-7 h-7 text-blue-700" />
+              )}
             </div>
             <div>
-              <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 group-hover:text-blue-700 transition-colors">
+              <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 group-hover:text-teal-700 transition-colors">
                 {siteName}
               </span>
               <p className="text-xs text-slate-500 font-medium">{siteSubtitle}</p>

@@ -18,8 +18,9 @@ export const defaultData = {
     password: "admin123"
   },
   settings: {
-    siteName: "OverseasServices",
+    siteName: "Hirentara",
     siteSubtitle: "Videsh Jobs, Visa & Attestation Portal",
+    logoUrl: "/logo.jpg",
     heroTitle: "Videsh Jane Ka Sapna,",
     heroHighlight: "Sahi, Surakshit & Legal",
     heroSuffix: "Tarike Se.",
@@ -30,8 +31,8 @@ export const defaultData = {
     genuineContracts: "100%",
     phone: "+919876543210",
     whatsapp: "919876543210",
-    email: "contact@overseas-services.com",
-    officeAddress: "SCF 24, 2nd Floor, Overseas Hub Commercial Complex, Near Bus Stand, Gorakhpur, UP - 273001",
+    email: "contact@hirentara.com",
+    officeAddress: "SCF 24, 2nd Floor, Hirentara Overseas Complex, Near Bus Stand, Gorakhpur, UP - 273001",
     workingHours: "Monday - Saturday: 9:30 AM to 6:30 PM (Sunday Closed)"
   },
   services: [
@@ -190,7 +191,7 @@ export const defaultData = {
       role: "Hotel Facilities & Steward",
       country: "Dubai, UAE",
       photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-      quote: "Overseas Services ke through mera Dubai hotel me selection hua. Visa 25 din me aa gaya aur company ne free room aur khana diya hai. Bahut honest team hai.",
+      quote: "Hirentara ke through mera Dubai hotel me selection hua. Visa 25 din me aa gaya aur company ne free room aur khana diya hai. Bahut honest team hai.",
       placedDate: "Placed Oct 2026",
       salary: "2,600 AED / Month"
     },
@@ -324,8 +325,26 @@ export const defaultData = {
   ]
 };
 
-// Initialize DB file
-fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+// Initialize DB file only if it doesn't exist (preserve existing applications & edits across restarts)
+if (!fs.existsSync(DB_FILE)) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+} else {
+  try {
+    const existing = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    let updated = false;
+    for (const key of Object.keys(defaultData)) {
+      if (existing[key] === undefined) {
+        existing[key] = defaultData[key];
+        updated = true;
+      }
+    }
+    if (updated) {
+      fs.writeFileSync(DB_FILE, JSON.stringify(existing, null, 2), 'utf-8');
+    }
+  } catch (err) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+  }
+}
 
 export function readDb() {
   try {
@@ -334,7 +353,7 @@ export function readDb() {
     // Ensure all keys exist
     return {
       admin: parsed.admin || defaultData.admin,
-      settings: parsed.settings || defaultData.settings,
+      settings: { ...defaultData.settings, ...(parsed.settings || {}) },
       services: parsed.services || defaultData.services,
       notices: parsed.notices || defaultData.notices,
       opportunities: parsed.opportunities || defaultData.opportunities,
@@ -362,5 +381,5 @@ export function generateApplicationId() {
   const db = readDb();
   const count = (db.applications?.length || 0) + 1;
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  return `OS-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;
+  return `HT-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;
 }

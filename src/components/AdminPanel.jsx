@@ -216,6 +216,13 @@ export default function AdminPanel({ onClose }) {
 
   // Update Application Status
   const handleStatusChange = async (appId, newStatus) => {
+    let reasonNote = '';
+    if (newStatus === 'Closed') {
+      const inputReason = window.prompt('Kripya application close karne ka reason darj karein (e.g. Candidate not interested / Eligibility mismatch):');
+      if (inputReason === null) return; // Cancel if user dismissed prompt
+      reasonNote = inputReason.trim() ? `Closed Reason: ${inputReason.trim()}` : 'Closed by Admin';
+    }
+
     setStatusUpdating(true);
     try {
       const res = await fetch(`/api/admin/applications/${appId}/status`, {
@@ -224,7 +231,7 @@ export default function AdminPanel({ onClose }) {
           'Content-Type': 'application/json',
           'x-admin-token': authToken
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status: newStatus, note: reasonNote })
       });
       const data = await res.json();
       if (data.success) {

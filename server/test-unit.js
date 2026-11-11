@@ -1,7 +1,7 @@
 import { readDb, writeDb, generateApplicationId } from './db.js';
 import * as XLSX from 'xlsx';
 
-console.log('--- Testing Overseas Services Database & Logic ---');
+console.log('--- Testing Hirentara Database & Logic ---');
 
 // Test 1: Read DB
 const db = readDb();
@@ -14,7 +14,7 @@ console.log(`  - Applications count: ${db.applications?.length}`);
 const id1 = generateApplicationId();
 const id2 = generateApplicationId();
 console.log(`✓ Generated Application IDs: ${id1}, ${id2}`);
-if (!id1.startsWith('OS-') || id1 === id2) {
+if (!id1.startsWith('HT-') || id1 === id2) {
   throw new Error('Application ID generation mismatch');
 }
 

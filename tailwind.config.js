@@ -7,21 +7,46 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Brand palette sampled from public/logo.jpg: deep navy and turquoise teal.
+        blue: {
+          50: '#f1f4fb',
+          100: '#e1e7f5',
+          200: '#c4cee8',
+          300: '#9aaad2',
+          400: '#6f83ba',
+          500: '#3d568f',
+          600: '#172754',
+          700: '#121f45',
+          800: '#0d1736',
+          900: '#080f25',
+        },
+        indigo: {
+          50: '#effcfb',
+          100: '#d8f6f4',
+          200: '#b1ebe8',
+          300: '#7bd9d5',
+          400: '#42c5bf',
+          500: '#16b3ad',
+          600: '#08a39e',
+          700: '#078580',
+          800: '#086b68',
+          900: '#075653',
+        },
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#1d4ed8', // classic overseas corporate blue
-          700: '#1e40af',
-          800: '#1e3a8a',
-          900: '#0f172a',
+          50: '#f1f4fb',
+          100: '#e1e7f5',
+          200: '#c4cee8',
+          300: '#9aaad2',
+          400: '#6f83ba',
+          500: '#3d568f',
+          600: '#172754',
+          700: '#121f45',
+          800: '#0d1736',
+          900: '#080f25',
         },
         accent: {
           gold: '#f59e0b',
-          emerald: '#10b981',
+          emerald: '#08a39e',
           crimson: '#ef4444'
         }
       }
@@ -29,4 +54,3 @@ export default {
   },
   plugins: [],
 }
-

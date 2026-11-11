@@ -214,7 +214,7 @@ export default function ApplicationForm({
                   className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                 >
                   <option value="">-- General Overseas Service / Any Opportunity --</option>
-                  {opportunities.map(opp => (
+                  {opportunities.filter(opp => opp.status !== 'closed').map(opp => (
                     <option key={opp.id} value={opp.id}>
                       {opp.title} ({opp.country} - {opp.serviceType})
                     </option>
@@ -224,13 +224,16 @@ export default function ApplicationForm({
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
                     <label className="text-[11px] font-bold text-slate-500 uppercase">Selected Service</label>
-                    <input
-                      type="text"
+                    <select
                       name="serviceType"
                       value={formData.serviceType}
                       onChange={handleChange}
                       className="w-full mt-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700"
-                    />
+                    >
+                      <option value="Overseas Jobs">Overseas Jobs</option>
+                      <option value="Visa Assistance">Visa Assistance</option>
+                      <option value="Documents Assistance">Documents Assistance</option>
+                    </select>
                   </div>
                   <div>
                     <label className="text-[11px] font-bold text-slate-500 uppercase">Country</label>
@@ -239,6 +242,7 @@ export default function ApplicationForm({
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
+                      placeholder="e.g. UAE (Dubai), Poland"
                       className="w-full mt-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700"
                     />
                   </div>
@@ -347,36 +351,38 @@ export default function ApplicationForm({
                 </div>
               </div>
 
-              {/* Qualification + Experience */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Highest Qualification
-                  </label>
-                  <input
-                    type="text"
-                    name="qualification"
-                    value={formData.qualification}
-                    onChange={handleChange}
-                    placeholder="e.g. 10th / 12th / ITI / Graduate"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              {/* Qualification + Skill + Experience (Job applications me dikhenge) */}
+              {formData.serviceType === 'Overseas Jobs' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Highest Qualification
+                    </label>
+                    <input
+                      type="text"
+                      name="qualification"
+                      value={formData.qualification}
+                      onChange={handleChange}
+                      placeholder="e.g. 10th / 12th / ITI / Graduate"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Work Experience / Trade Skill
-                  </label>
-                  <input
-                    type="text"
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleChange}
-                    placeholder="e.g. Fresher ya 2 saal hotel/driver/electrician"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Skill & Work Experience
+                    </label>
+                    <input
+                      type="text"
+                      name="experience"
+                      value={formData.experience}
+                      onChange={handleChange}
+                      placeholder="e.g. Fresher ya 2 saal hotel/driver/electrician"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Passport Status (Simple Yes / No as requested in brief) */}
               <div>

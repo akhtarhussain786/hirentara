@@ -5,7 +5,12 @@
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   color: #1e293b;
-  background-color: #f8fafc;
+  background-color: #f5f7fb;
+}
+
+::selection {
+  color: #ffffff;
+  background-color: #08a39e;
 }
 
 @keyframes marquee {
@@ -22,4 +27,3 @@ body {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
-

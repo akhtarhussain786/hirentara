@@ -4,6 +4,7 @@ import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
 export default function FloatingWhatsApp({ settings }) {
   const [isOpen, setIsOpen] = useState(false);
   const whatsappNumber = settings?.whatsapp || "919876543210";
+  const siteName = settings?.siteName || "Hirentara";
 
   const quickMessages = [
     { title: "Dubai Job Openings", text: "Namaste, mujhe Dubai hotel/technician job vacancy ke bare me jankari chahiye." },
@@ -29,7 +30,7 @@ export default function FloatingWhatsApp({ settings }) {
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm">Overseas Support Desk</h4>
+                <h4 className="font-extrabold text-sm">{siteName} Support Desk</h4>
                 <div className="flex items-center gap-1.5 text-[11px] text-emerald-100">
                   <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
                   <span>Online • Instant Help</span>
@@ -73,7 +74,7 @@ export default function FloatingWhatsApp({ settings }) {
           {/* Footer Direct CTA */}
           <div className="p-3 bg-white border-t border-slate-100">
             <button
-              onClick={() => sendWhatsApp("Namaste, mujhe Overseas Services ke bare me counseling chahiye.")}
+              onClick={() => sendWhatsApp(`Namaste, mujhe ${siteName} ke bare me counseling chahiye.`)}
               className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
             >
               <MessageCircle className="w-4 h-4" />
