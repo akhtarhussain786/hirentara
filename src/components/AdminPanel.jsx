@@ -8,7 +8,7 @@ import {
 
 export default function AdminPanel({ onClose }) {
   const [authToken, setAuthToken] = useState(localStorage.getItem('adminToken') || '');
-  const [username, setUsername] = useState('admin');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
@@ -590,11 +590,10 @@ export default function AdminPanel({ onClose }) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password (default: admin123)"
+                placeholder="Enter password"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 required
               />
-              <p className="text-[11px] text-slate-400 mt-1">Default demo password: <code className="text-teal-700 font-bold">admin123</code></p>
             </div>
 
             <div className="pt-2 flex items-center gap-3">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Globe, Menu, X, Shield, PhoneCall, Send, Briefcase } from 'lucide-react';
+import { Globe, Menu, X, Send } from 'lucide-react';
 
-export default function Header({ settings, onOpenApply, onOpenAdmin, currentView, setCurrentView }) {
+export default function Header({ settings, onOpenApply, currentView, setCurrentView }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
@@ -84,15 +84,6 @@ export default function Header({ settings, onOpenApply, onOpenAdmin, currentView
           {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <button
-              onClick={onOpenAdmin}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-blue-700 bg-slate-100 hover:bg-slate-200/80 rounded-lg transition-all"
-              title="Admin Panel Login"
-            >
-              <Shield className="w-4 h-4 text-slate-500" />
-              <span>Admin</span>
-            </button>
-
-            <button
               onClick={() => onOpenApply(null)}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all"
             >
@@ -154,12 +145,6 @@ export default function Header({ settings, onOpenApply, onOpenAdmin, currentView
               className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-bold rounded-xl text-center shadow-md"
             >
               <Send className="w-4 h-4" /> Apply Now (Common Form)
-            </button>
-            <button
-              onClick={() => { setMobileMenuOpen(false); onOpenAdmin(); }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl text-center text-sm"
-            >
-              <Shield className="w-4 h-4 text-slate-500" /> Admin Panel Login
             </button>
           </div>
         </div>
