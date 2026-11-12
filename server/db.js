@@ -1,7 +1,9 @@
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +37,71 @@ export const defaultData = {
     email: "contact@hirentara.com",
     officeAddress: "SCF 24, 2nd Floor, Hirentara Overseas Complex, Near Bus Stand, Gorakhpur, UP - 273001",
     workingHours: "Monday - Saturday: 9:30 AM to 6:30 PM (Sunday Closed)"
+  },
+  adminConfig: {
+    statuses: ["New", "Contacted", "Documents Pending", "Processing", "Completed", "Closed"],
+    serviceTypes: ["Overseas Jobs", "Visa Assistance", "Documents Assistance"],
+    opportunityStatuses: [
+      { value: "open", label: "Open (Accepting Applications)" },
+      { value: "closed", label: "Closed (Band)" }
+    ],
+    imagePresets: [
+      { label: "Dubai Hotel", url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" },
+      { label: "Europe Warehouse", url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" },
+      { label: "Skilled Technician", url: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80" },
+      { label: "Passport & Visa", url: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80" },
+      { label: "MEA Apostille Stamp", url: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80" },
+      { label: "Dubai Burj Khalifa", url: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80" }
+    ]
+  },
+  siteContent: {
+    heroSlides: [
+      {
+        eyebrow: "Featured Destination",
+        title: "Dubai: Apka Global Career Yahan Se Shuru Ho Sakta Hai",
+        detail: "Hotel, facility aur hospitality roles with verified employers.",
+        motivation: "Sahi guidance ke saath har sapna ek career ban sakta hai.",
+        image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80",
+        accent: "from-[#071126] via-[#111f45]/70 to-transparent"
+      },
+      {
+        eyebrow: "Europe Work Permit",
+        title: "Poland Mein Naye Mauke Aapka Intezaar Kar Rahe Hain",
+        detail: "Warehouse, logistics aur skilled work opportunities.",
+        motivation: "Aaj ka ek bold decision, kal ki behtar zindagi badal sakta hai.",
+        image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=1200&q=85",
+        accent: "from-[#071126] via-[#172754]/70 to-transparent"
+      },
+      {
+        eyebrow: "Safe & Legal Process",
+        title: "Videsh Jaane Ka Safar, Bharose Ke Saath",
+        detail: "Visa counselling, document attestation aur complete support.",
+        motivation: "Aapka passport sirf document nahi, naye future ka ticket hai.",
+        image: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?auto=format&fit=crop&w=1200&q=85",
+        accent: "from-[#071126] via-[#086b68]/70 to-transparent"
+      },
+      {
+        eyebrow: "Verified Opportunities",
+        title: "Apni Mehnat Ko Global Pehchaan Dijiye",
+        detail: "Transparent information, genuine contracts aur dedicated counsellors.",
+        motivation: "Sapne wahi sach hote hain jinhe hum pehla kadam de dete hain.",
+        image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85",
+        accent: "from-[#071126] via-[#121f45]/70 to-transparent"
+      }
+    ],
+    destinationCountries: [
+      { name: "Dubai (UAE)", flag: "🇦🇪", openJobs: "18+ Openings" },
+      { name: "Poland (Europe)", flag: "🇵🇱", openJobs: "12+ Openings" },
+      { name: "Saudi Arabia", flag: "🇸🇦", openJobs: "15+ Openings" },
+      { name: "Qatar", flag: "🇶🇦", openJobs: "8+ Openings" },
+      { name: "Croatia / Europe", flag: "🇭🇷", openJobs: "10+ Openings" },
+      { name: "Kuwait", flag: "🇰🇼", openJobs: "6+ Openings" }
+    ],
+    quickMessages: [
+      { title: "Dubai Job Openings", text: "Namaste, mujhe Dubai hotel/technician job vacancy ke bare me jankari chahiye." },
+      { title: "Europe / Poland Work Permit", text: "Namaste, Poland warehouse aur European work permit process ke bare me janna hai." },
+      { title: "Visa & Document Attestation", text: "Namaste, mujhe Visa assistance aur MEA Apostille attestation ki jankari chahiye." }
+    ]
   },
   services: [
     {
@@ -326,60 +393,102 @@ export const defaultData = {
   ]
 };
 
-// Initialize DB file only if it doesn't exist (preserve existing applications & edits across restarts)
-if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
-} else {
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/hirentara';
+const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'hirentara';
+const STATE_DOCUMENT_ID = 'main';
+let mongoClient;
+let stateCollection;
+
+function normalizeData(parsed = {}) {
+  return {
+    admin: parsed.admin || defaultData.admin,
+    settings: { ...defaultData.settings, ...(parsed.settings || {}) },
+    adminConfig: {
+      ...defaultData.adminConfig,
+      ...(parsed.adminConfig || {}),
+      statuses: parsed.adminConfig?.statuses || defaultData.adminConfig.statuses,
+      serviceTypes: parsed.adminConfig?.serviceTypes || defaultData.adminConfig.serviceTypes,
+      opportunityStatuses: parsed.adminConfig?.opportunityStatuses || defaultData.adminConfig.opportunityStatuses,
+      imagePresets: parsed.adminConfig?.imagePresets || defaultData.adminConfig.imagePresets
+    },
+    siteContent: {
+      ...defaultData.siteContent,
+      ...(parsed.siteContent || {}),
+      heroSlides: parsed.siteContent?.heroSlides || defaultData.siteContent.heroSlides,
+      destinationCountries: parsed.siteContent?.destinationCountries || defaultData.siteContent.destinationCountries,
+      quickMessages: parsed.siteContent?.quickMessages || defaultData.siteContent.quickMessages
+    },
+    services: parsed.services || defaultData.services,
+    notices: parsed.notices || defaultData.notices,
+    opportunities: parsed.opportunities || defaultData.opportunities,
+    testimonials: parsed.testimonials || defaultData.testimonials,
+    faqs: parsed.faqs || defaultData.faqs,
+    applications: parsed.applications || defaultData.applications
+  };
+}
+
+function loadLegacyData() {
   try {
-    const existing = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
-    let updated = false;
-    for (const key of Object.keys(defaultData)) {
-      if (existing[key] === undefined) {
-        existing[key] = defaultData[key];
-        updated = true;
-      }
+    if (fs.existsSync(DB_FILE)) {
+      return normalizeData(JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')));
     }
-    if (updated) {
-      fs.writeFileSync(DB_FILE, JSON.stringify(existing, null, 2), 'utf-8');
-    }
-  } catch (err) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Error reading legacy database file:', error);
+  }
+  return normalizeData(defaultData);
+}
+
+export async function connectDb() {
+  if (stateCollection) return;
+
+  mongoClient = new MongoClient(MONGODB_URI);
+  await mongoClient.connect();
+  stateCollection = mongoClient.db(MONGODB_DB_NAME).collection('site_state');
+
+  const existing = await stateCollection.findOne({ _id: STATE_DOCUMENT_ID });
+  if (!existing) {
+    await stateCollection.insertOne({ _id: STATE_DOCUMENT_ID, ...loadLegacyData() });
+    console.log('MongoDB initialized with existing application data.');
+  } else {
+    const normalized = normalizeData(existing);
+    await stateCollection.replaceOne({ _id: STATE_DOCUMENT_ID }, {
+      _id: STATE_DOCUMENT_ID,
+      ...normalized
+    });
+  }
+
+  console.log(`MongoDB connected: ${MONGODB_DB_NAME}`);
+}
+
+export async function closeDb() {
+  if (mongoClient) {
+    await mongoClient.close();
+    mongoClient = undefined;
+    stateCollection = undefined;
   }
 }
 
-export function readDb() {
-  try {
-    const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    const parsed = JSON.parse(raw);
-    // Ensure all keys exist
-    return {
-      admin: parsed.admin || defaultData.admin,
-      settings: { ...defaultData.settings, ...(parsed.settings || {}) },
-      services: parsed.services || defaultData.services,
-      notices: parsed.notices || defaultData.notices,
-      opportunities: parsed.opportunities || defaultData.opportunities,
-      testimonials: parsed.testimonials || defaultData.testimonials,
-      faqs: parsed.faqs || defaultData.faqs,
-      applications: parsed.applications || defaultData.applications
-    };
-  } catch (err) {
-    console.error("Error reading database, restoring defaults:", err);
-    return defaultData;
+export async function readDb() {
+  await connectDb();
+  const document = await stateCollection.findOne({ _id: STATE_DOCUMENT_ID });
+  if (!document) {
+    throw new Error('MongoDB site state document is missing.');
   }
+  return normalizeData(document);
 }
 
-export function writeDb(data) {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    console.error("Error writing to database:", err);
-    return false;
-  }
+export async function writeDb(data) {
+  await connectDb();
+  await stateCollection.replaceOne(
+    { _id: STATE_DOCUMENT_ID },
+    { _id: STATE_DOCUMENT_ID, ...normalizeData(data) },
+    { upsert: true }
+  );
+  return true;
 }
 
-export function generateApplicationId() {
-  const db = readDb();
+export async function generateApplicationId() {
+  const db = await readDb();
   const count = (db.applications?.length || 0) + 1;
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   return `OS-${new Date().getFullYear()}-${count}${randomSuffix.toString().slice(-2)}`;

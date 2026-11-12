@@ -3,13 +3,13 @@ import { Phone, MessageCircle, MapPin, Clock, Mail, Globe, ShieldCheck } from 'l
 
 export default function Footer({ settings, onOpenAdmin }) {
   const [logoError, setLogoError] = useState(false);
-  const phoneNumber = settings?.phone || "+919876543210";
-  const whatsappNumber = settings?.whatsapp || "919876543210";
-  const officeAddress = settings?.officeAddress || "SCF 24, 2nd Floor, Hirentara Overseas Complex, Near Bus Stand, Gorakhpur, UP - 273001";
-  const workingHours = settings?.workingHours || "Monday - Saturday: 9:30 AM to 6:30 PM (Sunday Closed)";
-  const email = settings?.email || "contact@hirentara.com";
-  const siteName = settings?.siteName || "Hirentara";
-  const logoUrl = settings?.logoUrl || "/logo.jpg";
+  const phoneNumber = settings?.phone || '';
+  const whatsappNumber = settings?.whatsapp || '';
+  const officeAddress = settings?.officeAddress || '';
+  const workingHours = settings?.workingHours || '';
+  const email = settings?.email || '';
+  const siteName = settings?.siteName || '';
+  const logoUrl = settings?.logoUrl || '';
 
   return (
     <footer id="contact" className="bg-slate-900 text-slate-300 pt-16 pb-12 border-t border-slate-800">

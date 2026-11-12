@@ -1,25 +1,26 @@
-import { readDb, writeDb, generateApplicationId } from './db.js';
+import { closeDb, readDb, writeDb, generateApplicationId } from './db.js';
 import * as XLSX from 'xlsx';
 
-console.log('--- Testing Hirentara Database & Logic ---');
+async function runTests() {
+  console.log('--- Testing Hirentara Database & Logic ---');
 
-// Test 1: Read DB
-const db = readDb();
-console.log('✓ Database read successfully');
-console.log(`  - Notices count: ${db.notices?.length}`);
-console.log(`  - Opportunities count: ${db.opportunities?.length}`);
-console.log(`  - Applications count: ${db.applications?.length}`);
+  // Test 1: Read DB
+  const db = await readDb();
+  console.log('✓ Database read successfully');
+  console.log(`  - Notices count: ${db.notices?.length}`);
+  console.log(`  - Opportunities count: ${db.opportunities?.length}`);
+  console.log(`  - Applications count: ${db.applications?.length}`);
 
-// Test 2: Generate unique application ID
-const id1 = generateApplicationId();
-const id2 = generateApplicationId();
-console.log(`✓ Generated Application IDs: ${id1}, ${id2}`);
-if (!id1.startsWith('OS-') || id1 === id2) {
-  throw new Error('Application ID generation mismatch');
-}
+  // Test 2: Generate unique application ID
+  const id1 = await generateApplicationId();
+  const id2 = await generateApplicationId();
+  console.log(`✓ Generated Application IDs: ${id1}, ${id2}`);
+  if (!id1.startsWith('OS-') || id1 === id2) {
+    throw new Error('Application ID generation mismatch');
+  }
 
-// Test 3: Insert new test application
-const testApp = {
+  // Test 3: Insert new test application
+  const testApp = {
   id: id1,
   opportunityId: 'opp-1',
   opportunityTitle: 'Dubai Hotel & Hospitality Staff',
@@ -40,14 +41,14 @@ const testApp = {
   internalNotes: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
-};
+  };
 
-db.applications.unshift(testApp);
-writeDb(db);
-console.log('✓ Application record saved to database.json successfully');
+  db.applications.unshift(testApp);
+  await writeDb(db);
+  console.log('✓ Application record saved to MongoDB successfully');
 
-// Test 4: Excel (.xlsx) workbook generation
-const rows = db.applications.map(item => ({
+  // Test 4: Excel (.xlsx) workbook generation
+  const rows = db.applications.map(item => ({
   'Application ID': item.id,
   'Full Name': item.fullName,
   'Mobile Number': item.mobile,
@@ -64,17 +65,25 @@ const rows = db.applications.map(item => ({
   'Resume Uploaded': item.resumeUrl ? 'Yes' : 'No',
   'Candidate Message': item.message || '',
   'Submitted Date': new Date(item.createdAt).toLocaleString('en-IN')
-}));
+  }));
 
-const worksheet = XLSX.utils.json_to_sheet(rows);
-const workbook = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
-const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-console.log(`✓ Excel export generated successfully (buffer size: ${buffer.length} bytes)`);
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Applications');
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  console.log(`✓ Excel export generated successfully (buffer size: ${buffer.length} bytes)`);
 
-// Clean up test app
-db.applications = db.applications.filter(a => a.id !== id1);
-writeDb(db);
-console.log('✓ Test cleanup completed');
+  // Clean up test app
+  db.applications = db.applications.filter(a => a.id !== id1);
+  await writeDb(db);
+  console.log('✓ Test cleanup completed');
 
-console.log('\n>>> ALL MODULE & BACKEND LOGIC CHECKS PASSED PERFECTLY! <<<');
+  console.log('\n>>> ALL MODULE & BACKEND LOGIC CHECKS PASSED PERFECTLY! <<<');
+}
+
+runTests()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(closeDb);

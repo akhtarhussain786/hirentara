@@ -3,6 +3,7 @@ import { MapPin, Banknote, Calendar, Search, AlertCircle, ArrowRight, Eye, Spark
 
 export default function OpportunitiesSection({
   opportunities,
+  serviceTypes,
   selectedCategory,
   onSelectCategory,
   onViewDetails,
@@ -10,7 +11,7 @@ export default function OpportunitiesSection({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = ['All', 'Overseas Jobs', 'Visa Assistance', 'Documents Assistance'];
+  const categories = ['All', ...(serviceTypes || [])];
 
   const filtered = opportunities.filter((item) => {
     const matchesCategory =

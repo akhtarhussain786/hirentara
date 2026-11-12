@@ -55,11 +55,20 @@ Ek complete, mobile-friendly website aur lead management system jo **Overseas Se
 ## 🛠️ Tech Stack
 - **Frontend**: React 18, Tailwind CSS, Lucide React icons, Vite
 - **Backend**: Node.js, Express.js, Multer (File uploads), XLSX (Excel export)
-- **Database**: Local JSON Data Store with persistence (`server/data/database.json`)
+- **Database**: MongoDB persistence (first startup imports existing data from `server/data/database.json`)
 
 ---
 
 ## 💻 Kaise Chalayein (How to Run)
+
+### MongoDB Configuration
+Local development ke liye `.env` me MongoDB URI set karein:
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/hirentara
+MONGODB_DB_NAME=hirentara
+PORT=3000
+```
+Server startup par existing `server/data/database.json` data MongoDB ke `site_state` collection me ek baar migrate ho jayega. Uske baad applications, settings, services, notices, opportunities, testimonials, FAQs, public homepage content aur Admin Panel controls MongoDB me save honge.
 
 ### 1. Production Mode (Single Command)
 Pehle frontend build kar lein (already built):

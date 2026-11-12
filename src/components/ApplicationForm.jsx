@@ -4,13 +4,14 @@ import { X, Send, CheckCircle2, AlertCircle, Upload, FileText, Check, Phone, Mes
 export default function ApplicationForm({
   selectedOpportunity,
   opportunities,
+  serviceTypes,
   onClose,
   onSubmitted
 }) {
   const [formData, setFormData] = useState({
     opportunityId: '',
-    serviceType: 'Overseas Jobs',
-    country: 'UAE (Dubai)',
+    serviceType: serviceTypes?.[0] || '',
+    country: '',
     opportunityTitle: '',
     fullName: '',
     mobile: '',
@@ -35,11 +36,11 @@ export default function ApplicationForm({
         ...prev,
         opportunityId: selectedOpportunity.id || '',
         opportunityTitle: selectedOpportunity.title || '',
-        serviceType: selectedOpportunity.serviceType || 'Overseas Jobs',
+        serviceType: selectedOpportunity.serviceType || serviceTypes?.[0] || '',
         country: selectedOpportunity.country || ''
       }));
     }
-  }, [selectedOpportunity]);
+  }, [selectedOpportunity, serviceTypes]);
 
   const validate = () => {
     const errs = {};
@@ -78,7 +79,7 @@ export default function ApplicationForm({
         ...prev,
         opportunityId: '',
         opportunityTitle: 'General Overseas Inquiry',
-        serviceType: 'Overseas Jobs',
+        serviceType: serviceTypes?.[0] || '',
         country: 'General'
       }));
     }
@@ -230,9 +231,9 @@ export default function ApplicationForm({
                       onChange={handleChange}
                       className="w-full mt-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700"
                     >
-                      <option value="Overseas Jobs">Overseas Jobs</option>
-                      <option value="Visa Assistance">Visa Assistance</option>
-                      <option value="Documents Assistance">Documents Assistance</option>
+                      {(serviceTypes || []).map(serviceType => (
+                        <option key={serviceType} value={serviceType}>{serviceType}</option>
+                      ))}
                     </select>
                   </div>
                   <div>

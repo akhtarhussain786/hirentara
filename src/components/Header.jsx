@@ -5,9 +5,9 @@ export default function Header({ settings, onOpenApply, onOpenAdmin, currentView
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
-  const siteName = settings?.siteName || "Hirentara";
-  const siteSubtitle = settings?.siteSubtitle || "Videsh Jobs, Visa & Attestation Portal";
-  const logoUrl = settings?.logoUrl || "/logo.jpg";
+  const siteName = settings?.siteName || '';
+  const siteSubtitle = settings?.siteSubtitle || '';
+  const logoUrl = settings?.logoUrl || '';
 
   const scrollTo = (id) => {
     if (currentView !== 'public') {

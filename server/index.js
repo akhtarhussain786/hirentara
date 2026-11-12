@@ -5,7 +5,15 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import * as XLSX from 'xlsx';
-import { readDb, writeDb, generateApplicationId, hashPassword, verifyPassword } from './db.js';
+import {
+  connectDb,
+  closeDb,
+  readDb,
+  writeDb,
+  generateApplicationId,
+  hashPassword,
+  verifyPassword
+} from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,12 +102,14 @@ app.use('/testimonial-images', express.static(TESTIMONIAL_IMAGES_DIR));
 // ----------------- PUBLIC ENDPOINTS -----------------
 
 // Get entire public site content (Settings, Services, Notices, Opportunities, Testimonials, FAQs)
-app.get('/api/site-data', (req, res) => {
-  const db = readDb();
+app.get('/api/site-data', async (req, res) => {
+  const db = await readDb();
   res.json({
     success: true,
     data: {
       settings: db.settings,
+      adminConfig: db.adminConfig,
+      siteContent: db.siteContent,
       services: db.services || [],
       notices: (db.notices || []).filter(n => n.active),
       opportunities: (db.opportunities || []).filter(o => o.status === 'open'),
@@ -111,15 +121,15 @@ app.get('/api/site-data', (req, res) => {
 });
 
 // Get all active notices
-app.get('/api/notices', (req, res) => {
-  const db = readDb();
+app.get('/api/notices', async (req, res) => {
+  const db = await readDb();
   const notices = (db.notices || []).filter(n => n.active);
   res.json({ success: true, data: notices });
 });
 
 // Get all opportunities (public can filter by open status)
-app.get('/api/opportunities', (req, res) => {
-  const db = readDb();
+app.get('/api/opportunities', async (req, res) => {
+  const db = await readDb();
   let list = db.opportunities || [];
   if (req.query.status) {
     list = list.filter(o => o.status === req.query.status);
@@ -131,8 +141,8 @@ app.get('/api/opportunities', (req, res) => {
 });
 
 // Get single opportunity detail
-app.get('/api/opportunities/:id', (req, res) => {
-  const db = readDb();
+app.get('/api/opportunities/:id', async (req, res) => {
+  const db = await readDb();
   const item = (db.opportunities || []).find(o => o.id === req.params.id);
   if (!item) {
     return res.status(404).json({ success: false, message: 'Opportunity not found' });
@@ -141,7 +151,7 @@ app.get('/api/opportunities/:id', (req, res) => {
 });
 
 // Submit Application (Public Common Form)
-app.post('/api/applications', upload.single('resume'), (req, res) => {
+app.post('/api/applications', upload.single('resume'), async (req, res) => {
   try {
     const {
       opportunityId,
@@ -166,7 +176,7 @@ app.post('/api/applications', upload.single('resume'), (req, res) => {
       });
     }
 
-    const db = readDb();
+    const db = await readDb();
 
     if (opportunityId) {
       const targetOpp = (db.opportunities || []).find(o => o.id === opportunityId);
@@ -178,7 +188,7 @@ app.post('/api/applications', upload.single('resume'), (req, res) => {
       }
     }
 
-    const newApplicationId = generateApplicationId();
+    const newApplicationId = await generateApplicationId();
 
     const applicationRecord = {
       id: newApplicationId,
@@ -205,7 +215,7 @@ app.post('/api/applications', upload.single('resume'), (req, res) => {
 
     db.applications = db.applications || [];
     db.applications.unshift(applicationRecord);
-    writeDb(db);
+    await writeDb(db);
 
     return res.json({
       success: true,
@@ -222,13 +232,13 @@ app.post('/api/applications', upload.single('resume'), (req, res) => {
 // ----------------- ADMIN ENDPOINTS -----------------
 
 // Admin Login
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;
-  const db = readDb();
+  const db = await readDb();
   if (username === db.admin.username && verifyPassword(password, db.admin.password)) {
     if (!db.admin.password.startsWith('scrypt$')) {
       db.admin.password = hashPassword(password);
-      writeDb(db);
+      await writeDb(db);
     }
     const token = 'token-' + Date.now() + '-' + Math.random().toString(36).substring(2);
     activeSessions.add(token);
@@ -250,18 +260,18 @@ app.post('/api/admin/logout', (req, res) => {
 });
 
 // Admin get all notices (including inactive)
-app.get('/api/admin/notices', requireAdmin, (req, res) => {
-  const db = readDb();
+app.get('/api/admin/notices', requireAdmin, async (req, res) => {
+  const db = await readDb();
   res.json({ success: true, data: db.notices || [] });
 });
 
 // Admin create notice
-app.post('/api/admin/notices', requireAdmin, (req, res) => {
+app.post('/api/admin/notices', requireAdmin, async (req, res) => {
   const { text, linkedOpportunityId, active } = req.body;
   if (!text) {
     return res.status(400).json({ success: false, message: 'Notice text is required' });
   }
-  const db = readDb();
+  const db = await readDb();
   const newNotice = {
     id: 'not-' + Date.now(),
     text,
@@ -271,37 +281,37 @@ app.post('/api/admin/notices', requireAdmin, (req, res) => {
   };
   db.notices = db.notices || [];
   db.notices.unshift(newNotice);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: newNotice });
 });
 
 // Admin update notice
-app.put('/api/admin/notices/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.put('/api/admin/notices/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const index = (db.notices || []).findIndex(n => n.id === req.params.id);
   if (index === -1) {
     return res.status(404).json({ success: false, message: 'Notice not found' });
   }
   db.notices[index] = { ...db.notices[index], ...req.body, updatedAt: new Date().toISOString() };
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: db.notices[index] });
 });
 
 // Admin delete notice
-app.delete('/api/admin/notices/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.delete('/api/admin/notices/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   db.notices = (db.notices || []).filter(n => n.id !== req.params.id);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'Notice deleted successfully' });
 });
 
 // Admin create opportunity
-app.post('/api/admin/opportunities', requireAdmin, (req, res) => {
+app.post('/api/admin/opportunities', requireAdmin, async (req, res) => {
   const { title, serviceType, country, imageUrl, salary, facilities, eligibility, charges, documentsRequired, deadline, status, featured } = req.body;
   if (!title || !serviceType || !country) {
     return res.status(400).json({ success: false, message: 'Title, Service Type and Country are required' });
   }
-  const db = readDb();
+  const db = await readDb();
   const newOpp = {
     id: 'opp-' + Date.now(),
     title,
@@ -320,33 +330,33 @@ app.post('/api/admin/opportunities', requireAdmin, (req, res) => {
   };
   db.opportunities = db.opportunities || [];
   db.opportunities.unshift(newOpp);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: newOpp });
 });
 
 // Admin update opportunity
-app.put('/api/admin/opportunities/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.put('/api/admin/opportunities/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const index = (db.opportunities || []).findIndex(o => o.id === req.params.id);
   if (index === -1) {
     return res.status(404).json({ success: false, message: 'Opportunity not found' });
   }
   db.opportunities[index] = { ...db.opportunities[index], ...req.body, updatedAt: new Date().toISOString() };
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: db.opportunities[index] });
 });
 
 // Admin delete opportunity
-app.delete('/api/admin/opportunities/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.delete('/api/admin/opportunities/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   db.opportunities = (db.opportunities || []).filter(o => o.id !== req.params.id);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'Opportunity deleted successfully' });
 });
 
 // Admin get applications with filters and search
-app.get('/api/admin/applications', requireAdmin, (req, res) => {
-  const db = readDb();
+app.get('/api/admin/applications', requireAdmin, async (req, res) => {
+  const db = await readDb();
   let list = db.applications || [];
 
   const { search, status, service, country } = req.query;
@@ -377,15 +387,15 @@ app.get('/api/admin/applications', requireAdmin, (req, res) => {
 });
 
 // Admin update application status
-app.put('/api/admin/applications/:id/status', requireAdmin, (req, res) => {
+app.put('/api/admin/applications/:id/status', requireAdmin, async (req, res) => {
   const { status, note } = req.body;
-  const validStatuses = ['New', 'Contacted', 'Documents Pending', 'Processing', 'Completed', 'Closed'];
+  const db = await readDb();
+  const validStatuses = db.adminConfig?.statuses || ['New', 'Contacted', 'Documents Pending', 'Processing', 'Completed', 'Closed'];
 
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid status' });
   }
 
-  const db = readDb();
   const appItem = (db.applications || []).find(a => a.id === req.params.id);
   if (!appItem) {
     return res.status(404).json({ success: false, message: 'Application not found' });
@@ -403,18 +413,18 @@ app.put('/api/admin/applications/:id/status', requireAdmin, (req, res) => {
     });
   }
 
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: appItem });
 });
 
 // Admin add internal note to application
-app.post('/api/admin/applications/:id/notes', requireAdmin, (req, res) => {
+app.post('/api/admin/applications/:id/notes', requireAdmin, async (req, res) => {
   const { note } = req.body;
   if (!note || !note.trim()) {
     return res.status(400).json({ success: false, message: 'Note content cannot be empty' });
   }
 
-  const db = readDb();
+  const db = await readDb();
   const appItem = (db.applications || []).find(a => a.id === req.params.id);
   if (!appItem) {
     return res.status(404).json({ success: false, message: 'Application not found' });
@@ -429,14 +439,14 @@ app.post('/api/admin/applications/:id/notes', requireAdmin, (req, res) => {
   appItem.internalNotes.push(newNote);
   appItem.updatedAt = new Date().toISOString();
 
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: appItem });
 });
 
 // Admin Export Applications to Excel (.xlsx)
-app.get('/api/admin/export', requireAdmin, (req, res) => {
+app.get('/api/admin/export', requireAdmin, async (req, res) => {
   try {
-    const db = readDb();
+    const db = await readDb();
     let list = db.applications || [];
 
     const { search, status, service } = req.query;
@@ -495,22 +505,21 @@ app.get('/api/admin/export', requireAdmin, (req, res) => {
 });
 
 // Admin stats overview
-app.get('/api/admin/stats', requireAdmin, (req, res) => {
-  const db = readDb();
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const apps = db.applications || [];
   const opps = db.opportunities || [];
   const notices = db.notices || [];
 
+  const statuses = db.adminConfig?.statuses || ['New', 'Contacted', 'Documents Pending', 'Processing', 'Completed', 'Closed'];
+  const statusCounts = Object.fromEntries(statuses.map(status => [
+    status,
+    apps.filter(application => application.status === status).length
+  ]));
+
   const stats = {
     totalApplications: apps.length,
-    statusCounts: {
-      New: apps.filter(a => a.status === 'New').length,
-      Contacted: apps.filter(a => a.status === 'Contacted').length,
-      'Documents Pending': apps.filter(a => a.status === 'Documents Pending').length,
-      Processing: apps.filter(a => a.status === 'Processing').length,
-      Completed: apps.filter(a => a.status === 'Completed').length,
-      Closed: apps.filter(a => a.status === 'Closed').length
-    },
+    statusCounts,
     totalOpportunities: opps.length,
     activeNotices: notices.filter(n => n.active).length
   };
@@ -519,12 +528,14 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
 });
 
 // Admin get complete site content for editing
-app.get('/api/admin/site-data', requireAdmin, (req, res) => {
-  const db = readDb();
+app.get('/api/admin/site-data', requireAdmin, async (req, res) => {
+  const db = await readDb();
   res.json({
     success: true,
     data: {
       settings: db.settings,
+      adminConfig: db.adminConfig,
+      siteContent: db.siteContent,
       services: db.services || [],
       notices: db.notices || [],
       opportunities: db.opportunities || [],
@@ -535,16 +546,16 @@ app.get('/api/admin/site-data', requireAdmin, (req, res) => {
 });
 
 // Admin update website general settings & branding
-app.put('/api/admin/settings', requireAdmin, (req, res) => {
-  const db = readDb();
+app.put('/api/admin/settings', requireAdmin, async (req, res) => {
+  const db = await readDb();
   db.settings = { ...db.settings, ...req.body };
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'Website settings updated successfully', data: db.settings });
 });
 
 // Admin Services CRUD
-app.post('/api/admin/services', requireAdmin, (req, res) => {
-  const db = readDb();
+app.post('/api/admin/services', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const newService = {
     id: 'srv-' + Date.now(),
     title: req.body.title || 'New Service',
@@ -556,29 +567,29 @@ app.post('/api/admin/services', requireAdmin, (req, res) => {
   };
   db.services = db.services || [];
   db.services.push(newService);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: newService });
 });
 
-app.put('/api/admin/services/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.put('/api/admin/services/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const index = (db.services || []).findIndex(s => s.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: 'Service not found' });
   db.services[index] = { ...db.services[index], ...req.body };
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: db.services[index] });
 });
 
-app.delete('/api/admin/services/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.delete('/api/admin/services/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   db.services = (db.services || []).filter(s => s.id !== req.params.id);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'Service deleted successfully' });
 });
 
 // Admin Testimonials CRUD
-app.post('/api/admin/testimonials', requireAdmin, testimonialImageUpload.single('photoFile'), (req, res) => {
-  const db = readDb();
+app.post('/api/admin/testimonials', requireAdmin, testimonialImageUpload.single('photoFile'), async (req, res) => {
+  const db = await readDb();
   const newTestimonial = {
     id: 'test-' + Date.now(),
     name: req.body.name || 'Candidate Name',
@@ -591,12 +602,12 @@ app.post('/api/admin/testimonials', requireAdmin, testimonialImageUpload.single(
   };
   db.testimonials = db.testimonials || [];
   db.testimonials.push(newTestimonial);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: newTestimonial });
 });
 
-app.put('/api/admin/testimonials/:id', requireAdmin, testimonialImageUpload.single('photoFile'), (req, res) => {
-  const db = readDb();
+app.put('/api/admin/testimonials/:id', requireAdmin, testimonialImageUpload.single('photoFile'), async (req, res) => {
+  const db = await readDb();
   const index = (db.testimonials || []).findIndex(t => t.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: 'Testimonial not found' });
   db.testimonials[index] = {
@@ -604,20 +615,20 @@ app.put('/api/admin/testimonials/:id', requireAdmin, testimonialImageUpload.sing
     ...req.body,
     ...(req.file ? { photo: `/testimonial-images/${req.file.filename}` } : {})
   };
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: db.testimonials[index] });
 });
 
-app.delete('/api/admin/testimonials/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.delete('/api/admin/testimonials/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   db.testimonials = (db.testimonials || []).filter(t => t.id !== req.params.id);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'Testimonial deleted successfully' });
 });
 
 // Admin FAQ CRUD
-app.post('/api/admin/faqs', requireAdmin, (req, res) => {
-  const db = readDb();
+app.post('/api/admin/faqs', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const newFaq = {
     id: 'faq-' + Date.now(),
     q: req.body.q || 'New Question',
@@ -625,36 +636,36 @@ app.post('/api/admin/faqs', requireAdmin, (req, res) => {
   };
   db.faqs = db.faqs || [];
   db.faqs.push(newFaq);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: newFaq });
 });
 
-app.put('/api/admin/faqs/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.put('/api/admin/faqs/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   const index = (db.faqs || []).findIndex(f => f.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: 'FAQ not found' });
   db.faqs[index] = { ...db.faqs[index], ...req.body };
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, data: db.faqs[index] });
 });
 
-app.delete('/api/admin/faqs/:id', requireAdmin, (req, res) => {
-  const db = readDb();
+app.delete('/api/admin/faqs/:id', requireAdmin, async (req, res) => {
+  const db = await readDb();
   db.faqs = (db.faqs || []).filter(f => f.id !== req.params.id);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'FAQ deleted successfully' });
 });
 
 // Admin Security Update (Username & Password)
-app.put('/api/admin/security', requireAdmin, (req, res) => {
+app.put('/api/admin/security', requireAdmin, async (req, res) => {
   const { newUsername, newPassword } = req.body;
   if (!newPassword || newPassword.length < 4) {
     return res.status(400).json({ success: false, message: 'Password kam se kam 4 characters ka hona chahiye.' });
   }
-  const db = readDb();
+  const db = await readDb();
   db.admin.username = newUsername || db.admin.username;
   db.admin.password = hashPassword(newPassword);
-  writeDb(db);
+  await writeDb(db);
   res.json({ success: true, message: 'Admin username aur password safaltapoorvak badal gaya.' });
 });
 
@@ -700,14 +711,25 @@ if (fs.existsSync(DIST_DIR)) {
   });
 }
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend server running smoothly on http://127.0.0.1:${PORT}`);
-});
+async function startServer() {
+  try {
+    await connectDb();
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Backend server running smoothly on http://127.0.0.1:${PORT}`);
+    });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.warn(`[WARN] Port ${PORT} already active. Existing server instance is handling requests.`);
-  } else {
-    console.error('[ERROR] Server listen failed:', err);
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`[WARN] Port ${PORT} already active. Existing server instance is handling requests.`);
+      } else {
+        console.error('[ERROR] Server listen failed:', err);
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] MongoDB connection failed. Server not started:', error);
+    await closeDb();
+    process.exitCode = 1;
   }
-});
+}
+
+startServer();

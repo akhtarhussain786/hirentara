@@ -18,6 +18,12 @@ export default function AdminPanel({ onClose }) {
   // Complete Site Data State
   const [siteData, setSiteData] = useState({
     settings: {},
+    adminConfig: {
+      statuses: [],
+      serviceTypes: [],
+      opportunityStatuses: [],
+      imagePresets: []
+    },
     services: [],
     notices: [],
     opportunities: [],
@@ -68,7 +74,10 @@ export default function AdminPanel({ onClose }) {
   // Stats
   const [stats, setStats] = useState(null);
 
-  const statuses = ['New', 'Contacted', 'Documents Pending', 'Processing', 'Completed', 'Closed'];
+  const statuses = siteData.adminConfig?.statuses || [];
+  const serviceTypes = siteData.adminConfig?.serviceTypes || [];
+  const opportunityStatuses = siteData.adminConfig?.opportunityStatuses || [];
+  const imagePresets = siteData.adminConfig?.imagePresets || [];
 
   // Handle Login
   const handleLogin = async (e) => {
@@ -518,16 +527,6 @@ export default function AdminPanel({ onClose }) {
     }
   };
 
-  // Preset image picker helper
-  const imagePresets = [
-    { label: 'Dubai Hotel', url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80' },
-    { label: 'Europe Warehouse', url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80' },
-    { label: 'Skilled Technician', url: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80' },
-    { label: 'Passport & Visa', url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80' },
-    { label: 'MEA Apostille Stamp', url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80' },
-    { label: 'Dubai Burj Khalifa', url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80' }
-  ];
-
   // LOGIN SCREEN
   if (!authToken) {
     return (
@@ -822,9 +821,9 @@ export default function AdminPanel({ onClose }) {
                   className="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700"
                 >
                   <option value="All">All Services</option>
-                  <option value="Overseas Jobs">Overseas Jobs</option>
-                  <option value="Visa Assistance">Visa Assistance</option>
-                  <option value="Documents Assistance">Documents Assistance</option>
+                  {serviceTypes.map(serviceType => (
+                    <option key={serviceType} value={serviceType}>{serviceType}</option>
+                  ))}
                 </select>
 
                 <button
@@ -1130,9 +1129,9 @@ export default function AdminPanel({ onClose }) {
                 onClick={() => {
                   setEditingOpp({
                     title: '',
-                    serviceType: 'Overseas Jobs',
+                    serviceType: serviceTypes[0] || '',
                     country: '',
-                    imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+                    imageUrl: imagePresets[0]?.url || '',
                     salary: '',
                     facilities: '',
                     eligibility: '',
@@ -1719,9 +1718,9 @@ export default function AdminPanel({ onClose }) {
                     onChange={(e) => setEditingOpp({ ...editingOpp, serviceType: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl bg-white"
                   >
-                    <option value="Overseas Jobs">Overseas Jobs</option>
-                    <option value="Visa Assistance">Visa Assistance</option>
-                    <option value="Documents Assistance">Documents Assistance</option>
+                    {serviceTypes.map(serviceType => (
+                      <option key={serviceType} value={serviceType}>{serviceType}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -1825,8 +1824,9 @@ export default function AdminPanel({ onClose }) {
                     onChange={(e) => setEditingOpp({ ...editingOpp, status: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl bg-white"
                   >
-                    <option value="open">Open (Accepting Applications)</option>
-                    <option value="closed">Closed (Band)</option>
+                    {opportunityStatuses.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>

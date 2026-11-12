@@ -2,37 +2,7 @@ import React from 'react';
 import { Star, CheckCircle, Quote, MapPin } from 'lucide-react';
 
 export default function TestimonialsSection({ testimonials: propTestimonials }) {
-  const defaultStories = [
-    {
-      name: "Rameshwar Yadav",
-      role: "Hotel Facilities & Steward",
-      country: "Dubai, UAE",
-      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-      quote: "Overseas Services ke through mera Dubai hotel me selection hua. Visa 25 din me aa gaya aur company ne free room aur khana diya hai. Bahut honest team hai.",
-      placedDate: "Placed Oct 2026",
-      salary: "2,600 AED / Month"
-    },
-    {
-      name: "Praveen Sharma",
-      role: "Logistics Warehouse Assistant",
-      country: "Warsaw, Poland (Europe)",
-      photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-      quote: "Europe jane ka sapna tha. Sirf basic 12th thi, lekin inhone work permit aur VFS appointment me poora guide kiya. Aaj Poland me achhi earning kar raha hu.",
-      placedDate: "Placed Sep 2026",
-      salary: "4,600 PLN / Month"
-    },
-    {
-      name: "Mohammad Irfan",
-      role: "Certified Industrial Electrician",
-      country: "Riyadh, Saudi Arabia",
-      photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80",
-      quote: "ITI ke baad job dhoondh raha tha. Inke pass aane ke baad trade test hua aur direct company ka offer letter mila. Iqama aur medical sab smoothly ho gaya.",
-      placedDate: "Placed Aug 2026",
-      salary: "3,000 SAR / Month"
-    }
-  ];
-
-  const stories = (propTestimonials && propTestimonials.length > 0) ? propTestimonials : defaultStories;
+  const stories = propTestimonials || [];
 
   return (
     <section className="py-16 sm:py-24 bg-white border-t border-slate-200">

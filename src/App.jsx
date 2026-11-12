@@ -15,6 +15,14 @@ import FloatingWhatsApp from './components/FloatingWhatsApp';
 export default function App() {
   const [siteData, setSiteData] = useState({
     settings: null,
+    adminConfig: {
+      serviceTypes: []
+    },
+    siteContent: {
+      heroSlides: [],
+      destinationCountries: [],
+      quickMessages: []
+    },
     services: [],
     notices: [],
     opportunities: [],
@@ -105,6 +113,7 @@ export default function App() {
         {/* 3. Hero Banner with 3-Step Visitor Safar */}
         <Hero
           settings={siteData.settings}
+          siteContent={siteData.siteContent}
           onExplore={() => {
             const el = document.getElementById('opportunities');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -129,6 +138,7 @@ export default function App() {
         {/* 5. Opportunities & Services Grid */}
         <OpportunitiesSection
           opportunities={opportunities}
+          serviceTypes={siteData.adminConfig?.serviceTypes}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
           onViewDetails={(opp) => setDetailsOpp(opp)}
@@ -146,7 +156,10 @@ export default function App() {
       <Footer settings={siteData.settings} onOpenAdmin={() => setIsAdminOpen(true)} />
 
       {/* 8. Floating WhatsApp Help Desk */}
-      <FloatingWhatsApp settings={siteData.settings} />
+      <FloatingWhatsApp
+        settings={siteData.settings}
+        quickMessages={siteData.siteContent?.quickMessages}
+      />
 
       {/* Reusable Details Page / Modal */}
       {detailsOpp && (
@@ -162,6 +175,7 @@ export default function App() {
         <ApplicationForm
           selectedOpportunity={applyOpp}
           opportunities={opportunities}
+          serviceTypes={siteData.adminConfig?.serviceTypes}
           onClose={() => {
             setIsApplyModalOpen(false);
             setApplyOpp(null);

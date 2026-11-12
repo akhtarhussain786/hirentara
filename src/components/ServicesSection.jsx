@@ -1,56 +1,8 @@
 import React from 'react';
-import { Briefcase, Compass, FileCheck2, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { Briefcase, ArrowRight, Check, Sparkles } from 'lucide-react';
 
 export default function ServicesSection({ services: propServices, onSelectCategory, onApplyForService }) {
-  const defaultServices = [
-    {
-      id: 'srv-1',
-      serviceType: 'Overseas Jobs',
-      title: 'Overseas Jobs (Videsh Rozgar)',
-      badge: 'Urgent Hiring',
-      icon: Briefcase,
-      imageUrl: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80',
-      description: 'Dubai, Gulf, Poland aur European countries me verified employers ke saath hotel, warehouse, technician, driver aur logistics jobs.',
-      features: [
-        'Direct Employer Contracts & Offer Letters',
-        'Company Stay, Food & Health Insurance',
-        'Transparent Process & Fair Salary',
-        'Pre-departure orientation & airport pickup'
-      ]
-    },
-    {
-      id: 'srv-2',
-      serviceType: 'Visa Assistance',
-      title: 'Visa Assistance Services',
-      badge: '98% Approval',
-      icon: Compass,
-      imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
-      description: 'Employment Visa, Tourist Visa, Business Visa aur Student Visa ke liye complete file preparation, appointment booking aur counseling.',
-      features: [
-        'VFS & Embassy Appointment Booking',
-        'Cover Letter, SOP & Financial Checklist',
-        'Embassy Mock Interview Guidance',
-        'Fast-track Visa filing & live status track'
-      ]
-    },
-    {
-      id: 'srv-3',
-      serviceType: 'Documents Assistance',
-      title: 'MEA Apostille & Attestation',
-      badge: 'Govt Certified',
-      icon: FileCheck2,
-      imageUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
-      description: 'MEA Apostille, State HRD, Notary, SDM aur foreign embassies (UAE, Saudi, Kuwait, Qatar) se legal degree aur certificate attestation.',
-      features: [
-        'MEA (Ministry of External Affairs) Apostille',
-        'Degree, Marksheet & Diploma Stamping',
-        'Birth, Marriage & Commercial Certificate',
-        'Safe doorstep pickup & speed courier service'
-      ]
-    }
-  ];
-
-  const services = (propServices && propServices.length > 0) ? propServices : defaultServices;
+  const services = propServices || [];
 
   return (
     <section id="services" className="brand-section py-16 sm:py-24 bg-white">

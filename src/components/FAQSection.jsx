@@ -4,34 +4,11 @@ import { ChevronDown, HelpCircle, PhoneCall, MessageCircle } from 'lucide-react'
 export default function FAQSection({ faqs: propFaqs, settings }) {
   const [openIndex, setOpenIndex] = useState(0);
 
-  const phone = settings?.phone || "+919876543210";
-  const whatsapp = settings?.whatsapp || "919876543210";
+  const phone = settings?.phone || '';
+  const whatsapp = settings?.whatsapp || '';
   const whatsappMessage = encodeURIComponent('Namaste, mujhe videsh services ke bare me sawal hai.');
 
-  const defaultFaqs = [
-    {
-      q: "Videsh jane ke liye kya passport pehle se hona zaroori hai?",
-      a: "Nahi, shuruat me agar aapke paas passport nahi bhi hai, tab bhi aap enquiry form bhar sakte hain. Hamari team aapko Tatkal ya Normal passport banwane ka poora process samjha degi. Lekin visa stamping ke samay valid passport zaroori hota hai."
-    },
-    {
-      q: "Visa aur processing me lagbhag kitna samay lagta hai?",
-      a: "Gulf deshon (Dubai, Saudi Arabia, Qatar) ke liye employment visa aamtaur par 20 se 35 din me process ho jata hai. European deshon (Poland, Croatia) ke liye official Work Permit aane me 60 se 90 din ka samay lagta hai."
-    },
-    {
-      q: "Kya rehna (Accommodation) aur khana company ki taraf se milta hai?",
-      a: "Haan, hamari zyadatar overseas job vacancies me company sharing accommodation, transportation aur food allowance ya subsidized mess provide karti hai. Har vacancy ke Details page par iski poori jankari di gayi hai."
-    },
-    {
-      q: "Kya koi hidden charges ya fraud ka risk hai?",
-      a: "Bilkul nahi. Hamari consultancy 100% genuine aur government registered standards follow karti hai. Document verification aur selection ke baad transparent fee breakdown diya jata hai aur proper receipt di jati hai."
-    },
-    {
-      q: "Medical fitness test (GAMCA) kaise aur kahan hota hai?",
-      a: "Gulf deshon ke liye GAMCA approved centers par medical test hota hai. Hamari team aapke shahar ke sabse kareebi approved medical center ka appointment book karwane me madad karti hai."
-    }
-  ];
-
-  const faqs = (propFaqs && propFaqs.length > 0) ? propFaqs : defaultFaqs;
+  const faqs = propFaqs || [];
 
   return (
     <section className="py-16 sm:py-24 bg-slate-50 border-t border-slate-200">

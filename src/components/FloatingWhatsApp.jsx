@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
 
-export default function FloatingWhatsApp({ settings }) {
+export default function FloatingWhatsApp({ settings, quickMessages: propQuickMessages }) {
   const [isOpen, setIsOpen] = useState(false);
-  const whatsappNumber = settings?.whatsapp || "919876543210";
-  const siteName = settings?.siteName || "Hirentara";
+  const whatsappNumber = settings?.whatsapp || '';
+  const siteName = settings?.siteName || '';
 
-  const quickMessages = [
-    { title: "Dubai Job Openings", text: "Namaste, mujhe Dubai hotel/technician job vacancy ke bare me jankari chahiye." },
-    { title: "Europe / Poland Work Permit", text: "Namaste, Poland warehouse aur European work permit process ke bare me janna hai." },
-    { title: "Visa & Document Attestation", text: "Namaste, mujhe Visa assistance aur MEA Apostille attestation ki jankari chahiye." }
-  ];
+  const quickMessages = propQuickMessages || [];
 
   const sendWhatsApp = (msg) => {
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;

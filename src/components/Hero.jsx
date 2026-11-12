@@ -1,51 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, PlaneTakeoff, ShieldCheck, CheckCircle2, Award, MapPin, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
-export default function Hero({ settings, onExplore, onApply }) {
-  const heroTitle = settings?.heroTitle || "Videsh Jane Ka Sapna,";
-  const heroHighlight = settings?.heroHighlight || "Sahi, Surakshit & Legal";
-  const heroSuffix = settings?.heroSuffix || "Tarike Se.";
-  const heroDescription = settings?.heroDescription || "Dubai, Gulf aur European deshon me verified jobs, fast-track visa processing aur legal MEA document attestation. Hamari team aapke sath shuruat se visa milne tak khadi rehti hai.";
-  const heroImageUrl = settings?.heroImageUrl || "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80";
-  const placedCount = settings?.placedCount || "5,400+";
-  const visaSuccessRate = settings?.visaSuccessRate || "98.4%";
-  const genuineContracts = settings?.genuineContracts || "100%";
+export default function Hero({ settings, siteContent, onExplore, onApply }) {
+  const heroTitle = settings?.heroTitle || '';
+  const heroHighlight = settings?.heroHighlight || '';
+  const heroSuffix = settings?.heroSuffix || '';
+  const heroDescription = settings?.heroDescription || '';
+  const heroImageUrl = settings?.heroImageUrl || '';
+  const placedCount = settings?.placedCount || '';
+  const visaSuccessRate = settings?.visaSuccessRate || '';
+  const genuineContracts = settings?.genuineContracts || '';
   const [activeSlide, setActiveSlide] = useState(0);
 
-  const heroSlides = [
-    {
-      image: heroImageUrl,
-      eyebrow: 'Featured Destination',
-      title: 'Dubai: Apka Global Career Yahan Se Shuru Ho Sakta Hai',
-      detail: 'Hotel, facility aur hospitality roles with verified employers.',
-      motivation: '“Sahi guidance ke saath har sapna ek career ban sakta hai.”',
-      accent: 'from-[#071126] via-[#111f45]/70 to-transparent'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=1200&q=85',
-      eyebrow: 'Europe Work Permit',
-      title: 'Poland Mein Naye Mauke Aapka Intezaar Kar Rahe Hain',
-      detail: 'Warehouse, logistics aur skilled work opportunities.',
-      motivation: '“Aaj ka ek bold decision, kal ki behtar zindagi badal sakta hai.”',
-      accent: 'from-[#071126] via-[#172754]/70 to-transparent'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?auto=format&fit=crop&w=1200&q=85',
-      eyebrow: 'Safe & Legal Process',
-      title: 'Videsh Jaane Ka Safar, Bharose Ke Saath',
-      detail: 'Visa counselling, document attestation aur complete support.',
-      motivation: '“Aapka passport sirf document nahi, naye future ka ticket hai.”',
-      accent: 'from-[#071126] via-[#086b68]/70 to-transparent'
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85',
-      eyebrow: 'Verified Opportunities',
-      title: 'Apni Mehnat Ko Global Pehchaan Dijiye',
-      detail: 'Transparent information, genuine contracts aur dedicated counsellors.',
-      motivation: '“Sapne wahi sach hote hain jinhe hum pehla kadam de dete hain.”',
-      accent: 'from-[#071126] via-[#121f45]/70 to-transparent'
-    }
-  ];
+  const heroSlides = (siteContent?.heroSlides || []).map((slide, index) => (
+    index === 0 ? { ...slide, image: heroImageUrl || slide.image } : slide
+  ));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -62,14 +31,9 @@ export default function Hero({ settings, onExplore, onApply }) {
     ));
   };
 
-  const destinationCountries = [
-    { name: 'Dubai (UAE)', flag: '🇦🇪', openJobs: '18+ Openings' },
-    { name: 'Poland (Europe)', flag: '🇵🇱', openJobs: '12+ Openings' },
-    { name: 'Saudi Arabia', flag: '🇸🇦', openJobs: '15+ Openings' },
-    { name: 'Qatar', flag: '🇶🇦', openJobs: '8+ Openings' },
-    { name: 'Croatia / Europe', flag: '🇭🇷', openJobs: '10+ Openings' },
-    { name: 'Kuwait', flag: '🇰🇼', openJobs: '6+ Openings' }
-  ];
+  const destinationCountries = siteContent?.destinationCountries || [];
+
+  if (heroSlides.length === 0) return null;
 
   return (
     <div id="home" className="relative overflow-hidden bg-gradient-to-b from-blue-50/80 via-white to-slate-50 pt-10 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200">
